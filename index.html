@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Relevamiento — GCBA</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --azul-oscuro:   #1D3343;   /* Color institucional principal (manual GCBA) */
+    --azul-oscuro-2: #16283536; /* variante para bordes sobre azul */
+    --amarillo:      #FFD200;   /* Acento institucional */
+    --amarillo-osc:  #E6BD00;
+    --gris-texto:    #333333;
+    --gris-muted:    #666666;
+    --gris-bg:       #F5F5F5;
+    --gris-borde:    #DDDDDD;
+    --gris-card:     #FAFAFA;
+    --blanco:        #FFFFFF;
+    --azul:          #0072BC;
+    --bien-bg:       #E8F5E9; --bien-txt: #2E7D32; --bien-borde: #66BB6A;
+    --reg-bg:        #FFF8E1; --reg-txt:  #E65100; --reg-borde:  #FFA726;
+    --mal-bg:        #FFEBEE; --mal-txt:  #C62828; --mal-borde:  #EF5350;
+    --radio:         4px;
+    --font:          'Nunito Sans', Arial, sans-serif;
+    --font-titulos:  'Archivo', 'Nunito Sans', Arial, sans-serif;  /* Tipografía institucional */
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--gris-bg);
+    color: var(--gris-texto);
+    font-size: 15px;
+    padding-bottom: 2.5rem;
+  }
+
+  /* ── HEADER ── */
+  .app-header {
+    background: var(--azul-oscuro);
+    padding: 0 16px;
+    position: sticky; top: 0; z-index: 100;
+    border-bottom: 3px solid var(--amarillo);
+  }
+  .app-header-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0;
+  }
+  .header-marca { display: flex; align-items: center; gap: 10px; }
+  .header-escudo {
+    width: 36px; height: 36px;
+    background: transparent;
+    border-radius: 2px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .header-textos { line-height: 1.2; }
+  .header-textos .org {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--blanco);
+    opacity: .65;
+  }
+  .header-textos .titulo {
+    font-family: var(--font-titulos);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--blanco);
+  }
+  .estado-conexion {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 10px; font-weight: 700;
+    padding: 4px 9px;
+    border-radius: 20px;
+    white-space: nowrap;
+    background: rgba(255,255,255,.12);
+    color: var(--blanco);
+  }
+  .estado-conexion .punto {
+    width: 6px; height: 6px; border-radius: 50%;
+  }
+  .estado-conexion.online .punto  { background: #4CAF50; }
+  .estado-conexion.offline .punto { background: var(--amarillo); animation: parpadeo 1.4s infinite; }
+  @keyframes parpadeo { 0%,100%{opacity:1} 50%{opacity:.2} }
+
+  /* ── BANNER PENDIENTES ── */
+  .banner-pendientes {
+    display: none;
+    background: #FFF8E1;
+    border-left: 4px solid #FFA726;
+    margin: 14px 12px 0;
+    padding: 11px 14px;
+    align-items: center;
+    gap: 10px;
+    border-radius: var(--radio);
+  }
+  .banner-pendientes.visible { display: flex; }
+  .banner-pendientes .icono { font-size: 18px; }
+  .banner-pendientes .texto { flex: 1; font-size: 12px; color: #E65100; line-height: 1.4; }
+  .banner-pendientes .texto strong { display: block; font-size: 13px; font-weight: 700; margin-bottom: 1px; }
+  .banner-pendientes .btn-reintentar {
+    font-size: 11px; font-weight: 700;
+    color: #E65100;
+    background: var(--blanco);
+    border: 1px solid #FFA726;
+    border-radius: var(--radio);
+    padding: 6px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  /* ── SECCIONES ── */
+  .seccion {
+    background: var(--blanco);
+    border-radius: var(--radio);
+    border: 1px solid var(--gris-borde);
+    margin: 14px 12px 0;
+    overflow: hidden;
+  }
+  .seccion-titulo {
+    font-family: var(--font-titulos);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--azul-oscuro);
+    padding: 10px 14px 8px;
+    border-bottom: 2px solid var(--amarillo);
+    background: var(--blanco);
+    display: flex; align-items: center; gap: 7px;
+  }
+  .seccion-titulo .num {
+    background: var(--amarillo);
+    color: var(--azul-oscuro);
+    font-size: 10px; font-weight: 800;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .seccion-cuerpo { padding: 14px; }
+
+  /* ── CAMPOS ── */
+  .campo { margin-bottom: 14px; }
+  .campo:last-child { margin-bottom: 0; }
+  .campo label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--gris-muted);
+    margin-bottom: 5px;
+  }
+  select, textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1.5px solid var(--gris-borde);
+    border-radius: var(--radio);
+    font-size: 16px;  /* 16px mínimo: evita que iPhone haga zoom automático al tocar el campo */
+    font-family: var(--font);
+    color: var(--gris-texto);
+    background: var(--blanco);
+    appearance: none; -webkit-appearance: none;
+  }
+  select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--amarillo);
+    box-shadow: 0 0 0 3px rgba(255,210,0,.2);
+  }
+  .select-wrap { position: relative; }
+  .select-wrap::after {
+    content: '▾';
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    color: var(--gris-muted); pointer-events: none; font-size: 13px;
+  }
+
+  /* ── CAMPO AUTOMÁTICO ── */
+  .campo-auto {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--gris-bg);
+    border: 1.5px solid var(--gris-borde);
+    border-radius: var(--radio);
+    padding: 10px 12px;
+  }
+  .campo-auto .icono { font-size: 17px; }
+  .campo-auto .etiqueta { font-size: 11px; color: var(--gris-muted); }
+  .campo-auto .valor { font-size: 13px; font-weight: 700; color: var(--gris-texto); margin-top: 1px; }
+  .badge-auto {
+    margin-left: auto;
+    font-size: 10px; font-weight: 700;
+    background: var(--amarillo);
+    color: var(--gris-texto);
+    border-radius: 3px;
+    padding: 2px 6px;
+    white-space: nowrap;
+  }
+
+  /* ── INFO SITIO ── */
+  .info-sitio {
+    background: var(--gris-bg);
+    border: 1.5px solid var(--gris-borde);
+    border-radius: var(--radio);
+    overflow: hidden;
+    margin-top: 6px;
+  }
+  .info-sitio-fila {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--gris-borde);
+    font-size: 13px;
+  }
+  .info-sitio-fila:last-child { border-bottom: none; }
+  .info-sitio-fila .clave { color: var(--gris-muted); font-size: 12px; }
+  .info-sitio-fila .valor { font-weight: 700; color: var(--gris-texto); text-align: right; max-width: 55%; }
+
+  /* ── ÁREAS ── */
+  .areas-titulo {
+    font-family: var(--font-titulos);
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .1em;
+    color: var(--azul-oscuro);
+    padding: 16px 12px 6px;
+  }
+  .area-card {
+    border: 1.5px solid var(--gris-borde);
+    border-radius: var(--radio);
+    margin: 8px 12px 0;
+    overflow: hidden;
+    background: var(--blanco);
+  }
+  .area-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px;
+    background: var(--blanco);
+    cursor: pointer; user-select: none;
+    border-left: 4px solid var(--amarillo);
+  }
+  .area-icono { font-size: 20px; }
+  .area-nombre { font-family: var(--font-titulos); font-size: 14px; font-weight: 600; flex: 1; color: var(--azul-oscuro); }
+  .area-chevron { font-size: 13px; color: var(--gris-muted); transition: transform .2s; }
+  .area-card.abierta .area-chevron { transform: rotate(180deg); }
+  .area-body {
+    display: none;
+    padding: 14px;
+    border-top: 1.5px solid var(--gris-borde);
+    background: var(--gris-card);
+  }
+  .area-card.abierta .area-body { display: block; }
+
+  /* ── EVALUACIONES ── */
+  .eval-fila { margin-bottom: 12px; }
+  .eval-label {
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .06em;
+    color: var(--gris-muted);
+    margin-bottom: 6px; display: block;
+  }
+  .pill-grupo { display: flex; gap: 6px; }
+  .pill {
+    flex: 1; text-align: center;
+    font-size: 14px; font-weight: 700;
+    font-family: var(--font);
+    padding: 11px 4px;   /* target táctil más grande para uso en campo */
+    border-radius: var(--radio);
+    border: 1.5px solid var(--gris-borde);
+    color: var(--gris-muted);
+    background: var(--blanco);
+    cursor: pointer; transition: all .15s;
+  }
+  .pill:active { transform: scale(.97); }
+  .pill.sel-bien    { background: var(--bien-bg); color: var(--bien-txt); border-color: var(--bien-borde); }
+  .pill.sel-regular { background: var(--reg-bg);  color: var(--reg-txt);  border-color: var(--reg-borde); }
+  .pill.sel-mal     { background: var(--mal-bg);  color: var(--mal-txt);  border-color: var(--mal-borde); }
+
+  /* ── FOTO ── */
+  .foto-zona {
+    display: none;
+    margin-top: 12px;
+    border: 2px dashed var(--mal-borde);
+    border-radius: var(--radio);
+    padding: 12px;
+    background: var(--mal-bg);
+  }
+  .foto-zona.visible { display: block; }
+  .foto-zona p { font-size: 12px; font-weight: 700; color: var(--mal-txt); margin-bottom: 8px; }
+  .foto-zona input[type=file] { display: none; }
+  .foto-btn-label {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; font-weight: 700; font-family: var(--font);
+    color: var(--mal-txt);
+    background: var(--blanco);
+    border: 1.5px solid var(--mal-borde);
+    border-radius: var(--radio);
+    padding: 8px 14px; cursor: pointer;
+  }
+  .foto-preview { margin-top: 8px; border-radius: var(--radio); overflow: hidden; display: none; }
+  .foto-preview img { width: 100%; max-height: 160px; object-fit: cover; display: block; }
+
+  /* ── NOTAS ── */
+  .notas-area { margin-top: 14px; border-top: 1px solid var(--gris-borde); padding-top: 14px; }
+  textarea { resize: none; line-height: 1.5; }
+
+  /* ── MAPA DE GEOLOCALIZACIÓN ── */
+  .geo-mapa {
+    border: 1.5px solid var(--gris-borde);
+    border-radius: var(--radio);
+    overflow: hidden;
+    height: 180px;
+  }
+  .geo-mapa iframe {
+    width: 100%; height: 100%;
+    border: 0; display: block;
+  }
+
+  /* ── BOTÓN ENVIAR ── */
+  .enviar-wrap { padding: 16px 12px 0; }
+  .btn-enviar {
+    width: 100%;
+    background: var(--azul-oscuro);
+    color: var(--blanco);
+    border: none;
+    border-radius: var(--radio);
+    padding: 15px;
+    font-size: 15px; font-weight: 700;
+    font-family: var(--font-titulos);
+    text-transform: uppercase; letter-spacing: .06em;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: opacity .15s;
+    border-bottom: 3px solid var(--amarillo);
+  }
+  .btn-enviar:active { opacity: .85; transform: translateY(1px); }
+  .btn-enviar:disabled { opacity: .45; cursor: not-allowed; }
+
+  /* ── REPORTAR ERROR ── */
+  .reporte-wrap { padding: 10px 12px 0; }
+  .btn-reporte {
+    width: 100%;
+    background: transparent;
+    color: var(--gris-muted);
+    border: 1.5px dashed var(--gris-borde);
+    border-radius: var(--radio);
+    padding: 11px;
+    font-size: 13px; font-weight: 700;
+    font-family: var(--font);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+  }
+  .reporte-panel {
+    display: none;
+    background: var(--blanco);
+    border: 1.5px solid var(--gris-borde);
+    border-radius: var(--radio);
+    padding: 14px;
+    margin-top: 8px;
+  }
+  .reporte-panel.visible { display: block; }
+  .btn-reporte-enviar {
+    margin-top: 10px;
+    width: 100%;
+    background: var(--gris-texto);
+    color: var(--blanco);
+    border: none;
+    border-radius: var(--radio);
+    padding: 11px;
+    font-size: 13px; font-weight: 700;
+    font-family: var(--font-titulos);
+    text-transform: uppercase; letter-spacing: .05em;
+    cursor: pointer;
+  }
+  .btn-reporte-enviar:disabled { opacity: .45; cursor: not-allowed; }
+
+  /* ── MENSAJES ── */
+  .msg {
+    display: none; margin: 14px 12px 0;
+    padding: 12px 14px; border-radius: var(--radio);
+    font-size: 14px; font-weight: 600; line-height: 1.4;
+  }
+  .msg.ok    { background: var(--bien-bg); color: var(--bien-txt); border-left: 4px solid var(--bien-borde); }
+  .msg.error { background: var(--mal-bg);  color: var(--mal-txt);  border-left: 4px solid var(--mal-borde); }
+  .msg.visible { display: block; }
+
+  /* ── PANTALLA DE CARGA ── */
+  #pantalla-carga {
+    position: fixed; inset: 0;
+    background: var(--azul-oscuro);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 999; gap: 10px;
+    padding: 0 24px; text-align: center;
+  }
+  #pantalla-carga .logo-carga { font-size: 40px; margin-bottom: 8px; }
+  #pantalla-carga .titulo-carga {
+    font-family: var(--font-titulos);
+    font-size: 19px; font-weight: 700; color: var(--blanco);
+    line-height: 1.3;
+  }
+  #pantalla-carga .direccion-carga {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--blanco); opacity: .75;
+    line-height: 1.5;
+  }
+  #pantalla-carga .gobierno-carga {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .1em; color: var(--amarillo);
+    line-height: 1.5;
+  }
+  .spinner {
+    width: 32px; height: 32px;
+    border: 3px solid rgba(255,255,255,.25);
+    border-top-color: var(--blanco);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+    margin-top: 14px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .pie {
+    text-align: center;
+    font-size: 10px; color: var(--gris-muted);
+    padding: 20px 12px 0;
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+</style>
+</head>
+<body>
+
+<!-- ✏️ ZONA EDITABLE — pantalla de carga inicial -->
+<div id="pantalla-carga">
+  <div class="logo-carga"><img src="https://lh3.googleusercontent.com/d/1kktmlDGDMsfXoWwnErplZrJoFxuU3WQQ" style="width:64px; height:64px; object-fit:contain;" alt="Logo"></div>  <!-- ✏️ LOGO -->
+  <div class="titulo-carga">Programa Recuperación de Espacios Comunitarios</div>                       <!-- ✏️ 1° PROGRAMA -->
+  <div class="direccion-carga">Dirección General de Competencias Comunales y Talleres</div>            <!-- ✏️ 2° DIRECCIÓN -->
+  <div class="gobierno-carga">Gobierno de la Ciudad de Buenos Aires</div>                              <!-- ✏️ 3° GOBIERNO -->
+  <div class="spinner"></div>
+</div>
+
+<!-- ╔══════════════════════════════════════════════════════════╗
+     ║  ✏️ ZONA EDITABLE — TÍTULOS Y LOGO DEL ENCABEZADO          ║
+     ║                                                            ║
+     ║  • "Gobierno de la Ciudad"  → línea chica de arriba        ║
+     ║  • "Relevamiento EEP"       → título principal             ║
+     ║  • El <img> dentro de "header-escudo" es el logo actual.  ║
+     ║                                                            ║
+     ║  PARA USAR UNA IMAGEN REAL EN VEZ DEL ÍCONO:               ║
+     ║  Reemplazá la línea del emoji por una etiqueta <img>:      ║
+     ║                                                            ║
+     ║  <img src="URL_DE_LA_IMAGEN" style="width:100%;            ║
+     ║       height:100%; object-fit:contain;">                   ║
+     ║                                                            ║
+     ║  La URL puede ser:                                         ║
+     ║  a) Una imagen subida a un sitio público                   ║
+     ║  b) Una imagen de Google Drive compartida como pública,    ║
+     ║     con el formato:                                        ║
+     ║     https://lh3.googleusercontent.com/d/ID_DEL_ARCHIVO     ║
+     ║     (reemplazá ID_DEL_ARCHIVO por el ID que aparece en     ║
+     ║     el link de compartir de Drive)                         ║
+     ╚══════════════════════════════════════════════════════════╝ -->
+<header class="app-header">
+  <div class="app-header-inner">
+    <div class="header-marca">
+      <div class="header-escudo" style="background:transparent;">
+        <img src="https://lh3.googleusercontent.com/d/1kktmlDGDMsfXoWwnErplZrJoFxuU3WQQ" style="width:100%; height:100%; object-fit:contain;" alt="Logo">
+      </div>  <!-- ✏️ LOGO -->
+      <div class="header-textos">
+        <div class="org">Programa Recuperación de Espacios Comunitarios</div>       <!-- ✏️ ORGANISMO -->
+        <div class="titulo">Carga de relevamientos</div>          <!-- ✏️ TÍTULO DE LA APP -->
+      </div>
+    </div>
+    <div class="estado-conexion online" id="estado-conexion">
+      <span class="punto"></span>
+      <span id="estado-conexion-texto">En línea</span>
+    </div>
+  </div>
+</header>
+
+<!-- BANNER PENDIENTES -->
+<div class="banner-pendientes" id="banner-pendientes">
+  <span class="icono">📦</span>
+  <div class="texto">
+    <strong id="banner-pendientes-count">0 relevamientos pendientes</strong>
+    Se enviarán automáticamente cuando haya señal
+  </div>
+  <button class="btn-reintentar" onclick="procesarColaPendientes()">Reintentar</button>
+</div>
+
+<!-- SECCIÓN 1: IDENTIFICACIÓN -->
+<div class="seccion">
+  <div class="seccion-titulo">
+    <span class="num">1</span>
+    Identificación
+  </div>
+  <div class="seccion-cuerpo">
+
+    <div class="campo">
+      <label>Relevador</label>
+      <div class="select-wrap">
+        <select id="sel-relevador">
+          <option value="">— Seleccioná tu nombre —</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="campo">
+      <label>Fecha y hora</label>
+      <div class="campo-auto">
+        <span class="icono">📅</span>
+        <div>
+          <div class="etiqueta">Registrado automáticamente</div>
+          <div class="valor" id="val-fecha">Obteniendo...</div>
+        </div>
+        <span class="badge-auto">🔒 Auto</span>
+      </div>
+    </div>
+
+    <div class="campo">
+      <label>Ubicación GPS</label>
+      <div class="campo-auto">
+        <span class="icono">📍</span>
+        <div>
+          <div class="etiqueta">Coordenadas del dispositivo</div>
+          <div class="valor" id="val-gps">Obteniendo ubicación...</div>
+        </div>
+        <span class="badge-auto">🔒 Auto</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- SECCIÓN 2: SITIO -->
+<div class="seccion">
+  <div class="seccion-titulo">
+    <span class="num">2</span>
+    Sitio y espacio público
+  </div>
+  <div class="seccion-cuerpo">
+
+    <div class="campo">
+      <label>Sitio</label>
+      <div class="select-wrap">
+        <select id="sel-sitio" onchange="alCambiarSitio()">
+          <option value="">— Seleccioná el sitio —</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="campo" id="bloque-espacio" style="display:none">
+      <label>Espacio público</label>
+      <div class="select-wrap">
+        <select id="sel-espacio" onchange="alCambiarEspacio()">
+          <option value="">— Seleccioná el espacio —</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="campo" id="bloque-geo" style="display:none">
+      <label>Ubicación del espacio</label>
+      <div class="geo-mapa">
+        <iframe id="geo-iframe" src="" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+    </div>
+
+    <div id="bloque-info-sitio" style="display:none">
+      <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gris-muted);display:block;margin-bottom:0;">
+        Datos del sitio
+      </label>
+      <div class="info-sitio" id="info-sitio-contenido"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- SECCIÓN 3: ÁREAS (generadas dinámicamente) -->
+<div id="bloque-areas"></div>
+
+<!-- MENSAJE -->
+<div class="msg" id="msg"></div>
+
+<!-- BOTÓN ENVIAR -->
+<div class="enviar-wrap">
+  <button class="btn-enviar" id="btn-enviar" onclick="enviarRelevamiento()">
+    <span>📤</span> Enviar relevamiento
+  </button>
+</div>
+
+<!-- REPORTAR ERROR O CORRECCIÓN -->
+<div class="reporte-wrap">
+  <button class="btn-reporte" id="btn-toggle-reporte" onclick="toggleReporte()">
+    <span>⚠️</span> Reportar error o corrección
+  </button>
+  <div class="reporte-panel" id="reporte-panel">
+    <label class="eval-label">Describí el error o la corrección necesaria</label>
+    <textarea id="reporte-texto" rows="4" placeholder="Ej: el sitio Calaza figura con la cooperativa equivocada / falta el espacio Plaza Norte / la superficie está mal cargada..."></textarea>
+    <button class="btn-reporte-enviar" id="btn-reporte-enviar" onclick="enviarReporte()">Enviar reporte</button>
+  </div>
+</div>
+
+<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios</div>  <!-- ✏️ PIE DE PÁGINA -->
+
+<script>
+// ╔══════════════════════════════════════════════════════════╗
+// ║  ✏️ CONFIGURACIÓN OBLIGATORIA                              ║
+// ║  Pegá acá la URL de tu implementación de Apps Script       ║
+// ║  (la que termina en /exec). La página le habla por acá.    ║
+// ╚══════════════════════════════════════════════════════════╝
+var API_URL = 'https://script.google.com/macros/s/AKfycbx4aCRqXH52o_38yAyfB-Ia_vT-czV_6J80vBDdbu1Qv15uPxQLgNBijG-YiecV713krg/exec';
+
+// ── LLAMADA A LA API (sin cookies de Google → sin bug de cuentas)
+function llamarAPI(accion, datos) {
+  return fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ accion: accion, datos: datos || null })
+  }).then(function(r) {
+    if (!r.ok) throw new Error('Error de servidor (HTTP ' + r.status + ')');
+    return r.json();
+  });
+}
+
+// ── ESTADO GLOBAL ──────────────────────────────────────────
+var DB        = { relevadores: [], sitios: [], espacios: [], areas: [] };
+var gpsLat    = null;
+var gpsLon    = null;
+var fechaHora = null;
+
+// ════════════════════════════════════════════════════════════
+//  COLA OFFLINE — IndexedDB
+// ════════════════════════════════════════════════════════════
+var NOMBRE_DB    = 'relevamiento_offline_db';
+var NOMBRE_STORE = 'pendientes';
+var dbConexion   = null;
+var procesandoCola = false;
+
+function abrirDB() {
+  return new Promise(function(resolve, reject) {
+    if (dbConexion) { resolve(dbConexion); return; }
+    var req = indexedDB.open(NOMBRE_DB, 1);
+    req.onupgradeneeded = function(e) {
+      var db = e.target.result;
+      if (!db.objectStoreNames.contains(NOMBRE_STORE)) {
+        db.createObjectStore(NOMBRE_STORE, { keyPath: 'idLocal', autoIncrement: true });
+      }
+    };
+    req.onsuccess = function(e) { dbConexion = e.target.result; resolve(dbConexion); };
+    req.onerror   = function(e) { reject(e.target.error); };
+  });
+}
+
+function guardarPendiente(payload) {
+  return abrirDB().then(function(db) {
+    return new Promise(function(resolve, reject) {
+      var tx    = db.transaction(NOMBRE_STORE, 'readwrite');
+      var store = tx.objectStore(NOMBRE_STORE);
+      var req   = store.add({ payload: payload, guardadoEn: new Date().toISOString() });
+      req.onsuccess = function() { resolve(req.result); };
+      req.onerror   = function(e) { reject(e.target.error); };
+    });
+  });
+}
+
+function obtenerPendientes() {
+  return abrirDB().then(function(db) {
+    return new Promise(function(resolve, reject) {
+      var tx  = db.transaction(NOMBRE_STORE, 'readonly');
+      var req = tx.objectStore(NOMBRE_STORE).getAll();
+      req.onsuccess = function() { resolve(req.result); };
+      req.onerror   = function(e) { reject(e.target.error); };
+    });
+  });
+}
+
+function eliminarPendiente(idLocal) {
+  return abrirDB().then(function(db) {
+    return new Promise(function(resolve, reject) {
+      var tx  = db.transaction(NOMBRE_STORE, 'readwrite');
+      var req = tx.objectStore(NOMBRE_STORE).delete(idLocal);
+      req.onsuccess = function() { resolve(); };
+      req.onerror   = function(e) { reject(e.target.error); };
+    });
+  });
+}
+
+function contarPendientes() {
+  return obtenerPendientes().then(function(items) { return items.length; });
+}
+
+function enviarAlServidor(payload) {
+  return llamarAPI('guardarRelevamiento', payload);
+}
+
+function procesarColaPendientes() {
+  if (procesandoCola) return;
+  if (!navigator.onLine) { actualizarBannerPendientes(); return; }
+  procesandoCola = true;
+  obtenerPendientes().then(function(items) {
+    if (items.length === 0) { procesandoCola = false; actualizarBannerPendientes(); return; }
+    var siguiente = function(i) {
+      if (i >= items.length) { procesandoCola = false; actualizarBannerPendientes(); return; }
+      var item = items[i];
+      enviarAlServidor(item.payload)
+        .then(function(res) {
+          if (res && res.ok) {
+            return eliminarPendiente(item.idLocal).then(function() { siguiente(i + 1); });
+          } else { siguiente(i + 1); }
+        })
+        .catch(function() { siguiente(i + 1); });
+    };
+    siguiente(0);
+  }).catch(function() { procesandoCola = false; });
+}
+
+function actualizarBannerPendientes() {
+  contarPendientes().then(function(n) {
+    var banner = document.getElementById('banner-pendientes');
+    document.getElementById('banner-pendientes-count').textContent =
+      n === 1 ? '1 relevamiento pendiente' : n + ' relevamientos pendientes';
+    banner.classList.toggle('visible', n > 0);
+  });
+}
+
+function actualizarEstadoConexion() {
+  var el    = document.getElementById('estado-conexion');
+  var texto = document.getElementById('estado-conexion-texto');
+  if (navigator.onLine) {
+    el.className = 'estado-conexion online';
+    texto.textContent = 'En línea';
+    procesarColaPendientes();
+    // Si el catálogo no cargó o está viejo, refrescarlo al volver la señal
+    if (DB.sitios.length === 0 || catalogoVencido()) {
+      cargarCatalogo(true);
+    }
+  } else {
+    el.className = 'estado-conexion offline';
+    texto.textContent = 'Sin señal';
+  }
+}
+
+window.addEventListener('online',  actualizarEstadoConexion);
+window.addEventListener('offline', actualizarEstadoConexion);
+setInterval(function() {
+  if (navigator.onLine) {
+    procesarColaPendientes();
+    // Actualización diaria del catálogo si la app queda abierta
+    if (catalogoVencido()) cargarCatalogo(true);
+  }
+}, 30000);
+
+// ════════════════════════════════════════════════════════════
+//  CATÁLOGO CON CACHÉ LOCAL
+//  Guarda sitios/espacios/áreas en el celular para que la app
+//  funcione aunque se abra sin señal. Se actualiza cada vez
+//  que se abre con conexión y, si queda abierta, al menos una
+//  vez por día.
+// ════════════════════════════════════════════════════════════
+var CLAVE_CATALOGO   = 'relevamiento_catalogo';
+var UN_DIA_MS        = 24 * 60 * 60 * 1000;
+
+function guardarCatalogoLocal(datos) {
+  try {
+    localStorage.setItem(CLAVE_CATALOGO, JSON.stringify({
+      datos: datos,
+      guardadoEn: new Date().getTime()
+    }));
+  } catch(e) { /* si no hay espacio, la app sigue funcionando online */ }
+}
+
+function leerCatalogoLocal() {
+  try {
+    var crudo = localStorage.getItem(CLAVE_CATALOGO);
+    return crudo ? JSON.parse(crudo) : null;
+  } catch(e) { return null; }
+}
+
+function catalogoVencido() {
+  var cache = leerCatalogoLocal();
+  if (!cache) return true;
+  return (new Date().getTime() - cache.guardadoEn) > UN_DIA_MS;
+}
+
+function aplicarCatalogo(datos) {
+  DB = datos;
+  // Limpiar selects antes de repoblar (por si es una actualización)
+  document.getElementById('sel-relevador').innerHTML = '<option value="">— Seleccioná tu nombre —</option>';
+  document.getElementById('sel-sitio').innerHTML     = '<option value="">— Seleccioná el sitio —</option>';
+  poblarRelevadores();
+  poblarSitios();
+}
+
+function cargarCatalogo(esRefrescoSilencioso) {
+  return llamarAPI('datosIniciales')
+    .then(function(datos) {
+      aplicarCatalogo(datos);
+      guardarCatalogoLocal(datos);
+      return true;
+    })
+    .catch(function() {
+      // Sin conexión → intentar el caché local
+      var cache = leerCatalogoLocal();
+      if (cache && cache.datos) {
+        aplicarCatalogo(cache.datos);
+        if (!esRefrescoSilencioso) {
+          var dias = Math.floor((new Date().getTime() - cache.guardadoEn) / UN_DIA_MS);
+          if (dias >= 1) {
+            mostrarMsg('⚠️ Estás sin señal. Usando el catálogo guardado hace ' + dias +
+              (dias === 1 ? ' día' : ' días') + '. Se actualizará solo al recuperar conexión.', false);
+          }
+        }
+      } else if (!esRefrescoSilencioso) {
+        mostrarMsg('Sin conexión y sin catálogo guardado. Abrí la app con señal al menos una vez para poder usarla offline.', false);
+      }
+      return false;
+    });
+}
+
+// ── INICIO ──────────────────────────────────────────────────
+window.addEventListener('load', function() {
+  capturarFechaHora();
+  capturarGPS();
+  actualizarEstadoConexion();
+  actualizarBannerPendientes();
+  cargarCatalogo(false).then(function() {
+    document.getElementById('pantalla-carga').style.display = 'none';
+  });
+});
+
+// ── FECHA Y HORA ────────────────────────────────────────────
+function capturarFechaHora() {
+  var ahora = new Date();
+  var pad   = function(n) { return n < 10 ? '0'+n : n; };
+  fechaHora = pad(ahora.getDate())    + '/' +
+              pad(ahora.getMonth()+1) + '/' +
+              ahora.getFullYear()     + ' ' +
+              pad(ahora.getHours())   + ':' +
+              pad(ahora.getMinutes());
+  document.getElementById('val-fecha').textContent = fechaHora;
+}
+
+// ── GPS ─────────────────────────────────────────────────────
+function capturarGPS() {
+  if (!navigator.geolocation) {
+    document.getElementById('val-gps').textContent = 'GPS no disponible';
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      gpsLat = pos.coords.latitude.toFixed(6);
+      gpsLon = pos.coords.longitude.toFixed(6);
+      document.getElementById('val-gps').textContent = gpsLat + ', ' + gpsLon;
+    },
+    function() { document.getElementById('val-gps').textContent = 'No se pudo obtener ubicación'; },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+
+// ── SELECTS ─────────────────────────────────────────────────
+function poblarRelevadores() {
+  var sel = document.getElementById('sel-relevador');
+  DB.relevadores.forEach(function(r) {
+    var opt = document.createElement('option');
+    opt.value = r; opt.textContent = r; sel.appendChild(opt);
+  });
+}
+
+function poblarSitios() {
+  var sel = document.getElementById('sel-sitio');
+  DB.sitios.forEach(function(s) {
+    var opt = document.createElement('option');
+    opt.value = s.id; opt.textContent = s.nombre; sel.appendChild(opt);
+  });
+}
+
+// ── CAMBIO DE SITIO ─────────────────────────────────────────
+function alCambiarSitio() {
+  var sitioId = document.getElementById('sel-sitio').value;
+  document.getElementById('bloque-areas').innerHTML = '';
+  document.getElementById('bloque-espacio').style.display      = 'none';
+  document.getElementById('bloque-info-sitio').style.display   = 'none';
+  document.getElementById('bloque-geo').style.display          = 'none';
+  if (!sitioId) return;
+
+  var sitio = DB.sitios.find(function(s) { return String(s.id) === String(sitioId); });
+  if (sitio) mostrarInfoSitio(sitio);
+
+  var sel = document.getElementById('sel-espacio');
+  sel.innerHTML = '<option value="">— Seleccioná el espacio —</option>';
+  DB.espacios
+    .filter(function(e) { return String(e.sitioId) === String(sitioId); })
+    .forEach(function(e) {
+      var opt = document.createElement('option');
+      opt.value = e.id; opt.textContent = e.nombre; sel.appendChild(opt);
+    });
+  document.getElementById('bloque-espacio').style.display = 'block';
+}
+
+// ── CAMBIO DE ESPACIO ────────────────────────────────────────
+function alCambiarEspacio() {
+  var espacioId = document.getElementById('sel-espacio').value;
+  document.getElementById('bloque-areas').innerHTML = '';
+  document.getElementById('bloque-geo').style.display = 'none';
+  if (!espacioId) return;
+
+  // Mostrar mapa si el espacio tiene coordenadas cargadas (columna GEO)
+  var espacio = DB.espacios.find(function(e) { return String(e.id) === String(espacioId); });
+  if (espacio && espacio.geo && String(espacio.geo).trim() !== '') {
+    var coords = String(espacio.geo).replace(/\s+/g, '');
+    document.getElementById('geo-iframe').src =
+      'https://maps.google.com/maps?q=' + encodeURIComponent(coords) + '&z=17&output=embed';
+    document.getElementById('bloque-geo').style.display = 'block';
+  }
+
+  var areas = DB.areas.filter(function(a) { return String(a.espacioId) === String(espacioId); });
+  var iconos = {
+    'Posta deportiva':   '🏋️',
+    'Patio de juegos':   '🛝',
+    'Área de encuentro': '🤝',
+    'Cancha de fútbol':  '⚽',
+    'Canil':             '🐕',
+    'Cantero':           '🌿'
+  };
+
+  var tituloAreas = document.createElement('div');
+  tituloAreas.className = 'areas-titulo';
+  tituloAreas.innerHTML = '<span class="num" style="background:var(--amarillo);color:var(--gris-texto);font-size:10px;font-weight:800;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-right:7px;">3</span>Evaluación de áreas';
+  document.getElementById('bloque-areas').appendChild(tituloAreas);
+
+  areas.forEach(function(area) {
+    var icono = iconos[area.nombre] || '📌';
+    var card  = document.createElement('div');
+    card.className = 'area-card';
+    card.id = 'area-card-' + area.id;
+    card.innerHTML =
+      '<div class="area-header" onclick="toggleArea(\'' + area.id + '\')">' +
+        '<span class="area-icono">' + icono + '</span>' +
+        '<span class="area-nombre">' + area.nombre + '</span>' +
+        '<span class="area-chevron">▾</span>' +
+      '</div>' +
+      '<div class="area-body">' + crearEvaluaciones(area.id) + '</div>';
+    document.getElementById('bloque-areas').appendChild(card);
+  });
+}
+
+// ── EVALUACIONES ────────────────────────────────────────────
+function crearEvaluaciones(areaId) {
+  var items = ['Limpieza', 'Luminaria', 'Equipamiento', 'Jardinería', 'Vereda'];
+  var html  = '';
+  items.forEach(function(item) {
+    var slug = item.toLowerCase().replace(/[áéíóúñ]/g, function(c) {
+      return {á:'a',é:'e',í:'i',ó:'o',ú:'u',ñ:'n'}[c];
+    });
+    html +=
+      '<div class="eval-fila">' +
+        '<span class="eval-label">' + item + '</span>' +
+        '<div class="pill-grupo">' +
+          '<div class="pill" onclick="selPill(this,\'' + areaId + '\',\'' + slug + '\',\'bien\')">Bien</div>' +
+          '<div class="pill" onclick="selPill(this,\'' + areaId + '\',\'' + slug + '\',\'regular\')">Regular</div>' +
+          '<div class="pill" onclick="selPill(this,\'' + areaId + '\',\'' + slug + '\',\'mal\')">Mal</div>' +
+        '</div>' +
+      '</div>';
+  });
+  html +=
+    '<div class="foto-zona" id="foto-' + areaId + '">' +
+      '<p>📷 Se requiere foto del estado</p>' +
+      '<label class="foto-btn-label" for="file-' + areaId + '">📸 Tomar / adjuntar foto</label>' +
+      '<input type="file" id="file-' + areaId + '" accept="image/*" capture="environment" onchange="previsualizarFoto(this,\'' + areaId + '\')">' +
+      '<div class="foto-preview" id="prev-' + areaId + '"><img id="img-' + areaId + '" src="" alt="foto"></div>' +
+    '</div>' +
+    '<div class="notas-area">' +
+      '<label class="eval-label">Notas</label>' +
+      '<textarea id="notas-' + areaId + '" rows="3" placeholder="Observaciones del área..."></textarea>' +
+    '</div>';
+  return html;
+}
+
+// ── PILLS ────────────────────────────────────────────────────
+function selPill(pill, areaId, item, valor) {
+  pill.parentElement.querySelectorAll('.pill').forEach(function(p) { p.className = 'pill'; });
+  pill.classList.add('sel-' + valor);
+  actualizarFotoZona(areaId);
+}
+
+function actualizarFotoZona(areaId) {
+  var hayMal = document.getElementById('area-card-' + areaId).querySelectorAll('.pill.sel-mal').length > 0;
+  document.getElementById('foto-' + areaId).classList.toggle('visible', hayMal);
+}
+
+// ── COMPRESIÓN DE FOTO ───────────────────────────────────────
+// Reduce la foto a máx. 1280px de lado y calidad 70% antes de
+// subirla: una foto de ~3 MB queda en ~200-400 KB sin perder
+// legibilidad para uso administrativo.
+function comprimirImagen(archivo) {
+  return new Promise(function(resolve, reject) {
+    var reader = new FileReader();
+    reader.onerror = function() { reject(new Error('No se pudo leer la imagen')); };
+    reader.onload = function(e) {
+      var img = new Image();
+      img.onerror = function() { reject(new Error('Formato de imagen no válido')); };
+      img.onload = function() {
+        var MAX = 1280;
+        var w = img.width, h = img.height;
+        if (w > MAX || h > MAX) {
+          if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+          else       { w = Math.round(w * MAX / h); h = MAX; }
+        }
+        var canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(archivo);
+  });
+}
+
+// ── FOTO ─────────────────────────────────────────────────────
+function previsualizarFoto(input, areaId) {
+  if (!input.files || !input.files[0]) return;
+  comprimirImagen(input.files[0])
+    .then(function(dataUrl) {
+      document.getElementById('img-' + areaId).src = dataUrl;
+      document.getElementById('prev-' + areaId).style.display = 'block';
+    })
+    .catch(function(err) {
+      mostrarMsg('❌ Error con la foto: ' + err.message, false);
+    });
+}
+
+function toggleArea(areaId) {
+  document.getElementById('area-card-' + areaId).classList.toggle('abierta');
+}
+
+// ── INFO SITIO ───────────────────────────────────────────────
+function mostrarInfoSitio(sitio) {
+  var filas = [
+    ['Comuna',        sitio.comuna],
+    ['Clasificación', sitio.clasificacion],
+    ['Superficie',    sitio.superficie],
+    ['Última visita', sitio.ultimaVisita || 'Sin visitas registradas'],
+    ['Cooperativa',   sitio.cooperativa],
+    ['Referente',     sitio.referente],
+    ['Contacto',      sitio.contacto]
+  ];
+  document.getElementById('info-sitio-contenido').innerHTML = filas.map(function(f) {
+    return '<div class="info-sitio-fila"><span class="clave">' + f[0] +
+           '</span><span class="valor">' + (f[1] || '—') + '</span></div>';
+  }).join('');
+  document.getElementById('bloque-info-sitio').style.display = 'block';
+}
+
+// ── PILLS VALOR ──────────────────────────────────────────────
+function getValorPill(areaId, item) {
+  var items = ['limpieza','luminaria','equipamiento','jardineria','vereda'];
+  var idx   = items.indexOf(item);
+  if (idx < 0) return '';
+  var fila  = document.getElementById('area-card-' + areaId).querySelectorAll('.eval-fila')[idx];
+  if (!fila) return '';
+  var sel = fila.querySelector('.pill.sel-bien, .pill.sel-regular, .pill.sel-mal');
+  if (!sel) return '';
+  if (sel.classList.contains('sel-bien'))    return 'Bien';
+  if (sel.classList.contains('sel-regular')) return 'Regular';
+  if (sel.classList.contains('sel-mal'))     return 'Mal';
+  return '';
+}
+
+function getFotoBase64(areaId) {
+  var img = document.getElementById('img-' + areaId);
+  if (!img || !img.src || img.src.indexOf('data:') !== 0) return '';
+  return img.src;
+}
+
+// ── ENVIAR ───────────────────────────────────────────────────
+function enviarRelevamiento() {
+  var relevador = document.getElementById('sel-relevador').value;
+  var sitioId   = document.getElementById('sel-sitio').value;
+  var espacioId = document.getElementById('sel-espacio').value;
+
+  if (!relevador) { mostrarMsg('Seleccioná tu nombre antes de enviar.', false); return; }
+  if (!sitioId)   { mostrarMsg('Seleccioná un sitio.', false); return; }
+  if (!espacioId) { mostrarMsg('Seleccioná un espacio público.', false); return; }
+
+  var sitio   = DB.sitios.find(function(s)   { return String(s.id) === String(sitioId); });
+  var espacio = DB.espacios.find(function(e) { return String(e.id) === String(espacioId); });
+  var areas   = DB.areas.filter(function(a)  { return String(a.espacioId) === String(espacioId); });
+
+  if (areas.length === 0) { mostrarMsg('Este espacio no tiene áreas cargadas.', false); return; }
+
+  // Validación: si un área tiene algún ítem en "Mal", la foto es obligatoria
+  for (var v = 0; v < areas.length; v++) {
+    var aId    = areas[v].id;
+    var valores = [
+      getValorPill(aId, 'limpieza'),
+      getValorPill(aId, 'luminaria'),
+      getValorPill(aId, 'equipamiento'),
+      getValorPill(aId, 'jardineria'),
+      getValorPill(aId, 'vereda')
+    ];
+    if (valores.indexOf('Mal') !== -1 && !getFotoBase64(aId)) {
+      mostrarMsg('📷 El área "' + areas[v].nombre + '" tiene ítems en mal estado. Adjuntá una foto antes de enviar.', false);
+      // Abrir la tarjeta del área para que vea dónde falta la foto
+      document.getElementById('area-card-' + aId).classList.add('abierta');
+      return;
+    }
+  }
+
+  var payload = {
+    relevador:     relevador,
+    fechaHora:     fechaHora,
+    latitud:       gpsLat  || 'No disponible',
+    longitud:      gpsLon  || 'No disponible',
+    sitioId:       sitioId,
+    sitioNombre:   sitio   ? sitio.nombre   : '',
+    espacioId:     espacioId,
+    espacioNombre: espacio ? espacio.nombre : '',
+    areas: areas.map(function(area) {
+      return {
+        id:           area.id,
+        nombre:       area.nombre,
+        limpieza:     getValorPill(area.id, 'limpieza'),
+        luminaria:    getValorPill(area.id, 'luminaria'),
+        equipamiento: getValorPill(area.id, 'equipamiento'),
+        jardineria:   getValorPill(area.id, 'jardineria'),
+        vereda:       getValorPill(area.id, 'vereda'),
+        notas:        (document.getElementById('notas-' + area.id) || {}).value || '',
+        fotoBase64:   getFotoBase64(area.id)
+      };
+    })
+  };
+
+  var btn = document.getElementById('btn-enviar');
+  btn.disabled = true;
+  btn.innerHTML = '<span>⏳</span> Enviando...';
+  ocultarMsg();
+
+  if (!navigator.onLine) { guardarYAvisar(payload, btn); return; }
+
+  enviarAlServidor(payload)
+    .then(function(res) {
+      btn.disabled = false;
+      btn.innerHTML = '<span>📤</span> Enviar relevamiento';
+      if (res.ok) {
+        mostrarMsg('✅ Relevamiento enviado correctamente. ID: ' + res.id, true);
+        resetFormulario();
+      } else {
+        mostrarMsg('❌ Error al guardar: ' + res.error, false);
+      }
+    })
+    .catch(function() { guardarYAvisar(payload, btn); });
+}
+
+function guardarYAvisar(payload, btn) {
+  guardarPendiente(payload).then(function() {
+    btn.disabled = false;
+    btn.innerHTML = '<span>📤</span> Enviar relevamiento';
+    mostrarMsg('📦 Sin señal. El relevamiento quedó guardado y se enviará solo cuando vuelva la conexión.', true);
+    actualizarBannerPendientes();
+    resetFormulario();
+  }).catch(function(err) {
+    btn.disabled = false;
+    btn.innerHTML = '<span>📤</span> Enviar relevamiento';
+    mostrarMsg('❌ No se pudo guardar localmente: ' + err.message, false);
+  });
+}
+
+// ── RESET ────────────────────────────────────────────────────
+function resetFormulario() {
+  document.getElementById('sel-relevador').value = '';
+  document.getElementById('sel-sitio').value     = '';
+  document.getElementById('sel-espacio').innerHTML = '<option value="">— Seleccioná el espacio —</option>';
+  document.getElementById('bloque-espacio').style.display      = 'none';
+  document.getElementById('bloque-info-sitio').style.display   = 'none';
+  document.getElementById('bloque-geo').style.display          = 'none';
+  document.getElementById('bloque-areas').innerHTML = '';
+  capturarFechaHora();
+  capturarGPS();
+}
+
+// ── REPORTAR ERROR O CORRECCIÓN ──────────────────────────────
+function toggleReporte() {
+  document.getElementById('reporte-panel').classList.toggle('visible');
+}
+
+function enviarReporte() {
+  var texto = document.getElementById('reporte-texto').value.trim();
+  if (!texto) { mostrarMsg('Escribí el error o la corrección antes de enviar.', false); return; }
+  if (!navigator.onLine) {
+    mostrarMsg('⚠️ Necesitás conexión para enviar el reporte. Reintentá cuando tengas señal.', false);
+    return;
+  }
+
+  var btn = document.getElementById('btn-reporte-enviar');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  var payload = {
+    fechaHora:     fechaHora,
+    relevador:     document.getElementById('sel-relevador').value || 'No indicado',
+    sitioNombre:   (function() {
+      var s = document.getElementById('sel-sitio');
+      return s.value ? s.options[s.selectedIndex].text : '';
+    })(),
+    espacioNombre: (function() {
+      var e = document.getElementById('sel-espacio');
+      return e.value ? e.options[e.selectedIndex].text : '';
+    })(),
+    texto: texto
+  };
+
+  llamarAPI('guardarReporte', payload)
+    .then(function(res) {
+      btn.disabled = false;
+      btn.textContent = 'Enviar reporte';
+      if (res.ok) {
+        document.getElementById('reporte-texto').value = '';
+        document.getElementById('reporte-panel').classList.remove('visible');
+        mostrarMsg('✅ Reporte enviado. ¡Gracias por avisar!', true);
+      } else {
+        mostrarMsg('❌ Error al enviar el reporte: ' + res.error, false);
+      }
+    })
+    .catch(function(err) {
+      btn.disabled = false;
+      btn.textContent = 'Enviar reporte';
+      mostrarMsg('❌ No se pudo enviar el reporte: ' + err.message, false);
+    });
+}
+
+function mostrarMsg(texto, ok) {
+  var el = document.getElementById('msg');
+  el.textContent = texto;
+  el.className   = 'msg visible ' + (ok ? 'ok' : 'error');
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function ocultarMsg() { document.getElementById('msg').className = 'msg'; }
+</script>
+</body>
+</html>
