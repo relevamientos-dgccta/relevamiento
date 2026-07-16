@@ -918,9 +918,9 @@ function alCambiarEspacio() {
     'Posta deportiva':   '🏋️',
     'Patio de juegos':   '🛝',
     'Área de encuentro': '🤝',
-    'Cancha de fútbol':  '⚽',
+    'Playón deportivo':  '⚽',
     'Canil':             '🐕',
-    'Cantero':           '🌿'
+    'Isla verde':           '🌿'
   };
 
   var tituloAreas = document.createElement('div');
@@ -1080,7 +1080,7 @@ function enviarRelevamiento() {
 
   if (!relevador) { mostrarMsg('Seleccioná tu nombre antes de enviar.', false); return; }
   if (!sitioId)   { mostrarMsg('Seleccioná un sitio.', false); return; }
-  if (!espacioId) { mostrarMsg('Seleccioná un espacio público.', false); return; }
+  if (!espacioId) { mostrarMsg('Seleccioná un espacio.', false); return; }
 
   var sitio   = DB.sitios.find(function(s)   { return String(s.id) === String(sitioId); });
   var espacio = DB.espacios.find(function(e) { return String(e.id) === String(espacioId); });
