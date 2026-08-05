@@ -527,9 +527,9 @@
   </div>
 </div>
 
-<!-- SECCIÓN 2: SITIO Y ESPACIO -->
+<!-- SECCIÓN 2: SITIO -->
 <div class="seccion">
-  <div class="seccion-titulo"><span class="num">2</span> Sitio y espacio</div>
+  <div class="seccion-titulo"><span class="num">2</span> Sitio</div>
   <div class="seccion-cuerpo">
 
     <div class="campo">
@@ -541,13 +541,31 @@
       </div>
     </div>
 
-    <div class="campo" id="bloque-espacio" style="display:none">
+    <div class="campo" id="bloque-info-sitio" style="display:none">
+      <label>Datos del sitio</label>
+      <div class="info-sitio" id="info-sitio-contenido"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- SECCIÓN 3: ESPACIO -->
+<div class="seccion" id="seccion-espacio" style="display:none">
+  <div class="seccion-titulo"><span class="num">3</span> Espacio</div>
+  <div class="seccion-cuerpo">
+
+    <div class="campo">
       <label>Espacio</label>
       <div class="select-wrap">
         <select id="sel-espacio" onchange="alCambiarEspacio()">
           <option value="">— Seleccioná el espacio —</option>
         </select>
       </div>
+    </div>
+
+    <div class="campo" id="bloque-info-espacio" style="display:none">
+      <label>Datos del espacio</label>
+      <div class="info-sitio" id="info-espacio-contenido"></div>
     </div>
 
     <div class="campo" id="bloque-geo" style="display:none">
@@ -557,23 +575,13 @@
       </div>
     </div>
 
-    <div class="campo" id="bloque-info-espacio" style="display:none">
-      <label>Datos del espacio</label>
-      <div class="info-sitio" id="info-espacio-contenido"></div>
-    </div>
-
-    <div class="campo" id="bloque-info-sitio" style="display:none">
-      <label>Datos del sitio</label>
-      <div class="info-sitio" id="info-sitio-contenido"></div>
-    </div>
-
   </div>
 </div>
 
 <!-- SECCIÓN 3: COOPERATIVA (OPCIONAL) -->
 <div class="seccion" id="seccion-cooperativa" style="display:none">
   <div class="seccion-titulo">
-    <span class="num">3</span> Cooperativa
+    <span class="num">4</span> Cooperativa
     <span class="opcional">Opcional</span>
   </div>
   <div class="seccion-cuerpo">
@@ -593,7 +601,7 @@
 
 <!-- SECCIÓN 4: EVALUACIÓN DEL ESPACIO -->
 <div class="seccion" id="seccion-espacio-eval" style="display:none">
-  <div class="seccion-titulo"><span class="num">4</span> Evaluación del espacio</div>
+  <div class="seccion-titulo"><span class="num">5</span> Evaluación del espacio</div>
   <div class="seccion-cuerpo">
 
     <div class="eval-fila">
@@ -1023,12 +1031,12 @@ function alCambiarSitio() {
       var opt = document.createElement('option');
       opt.value = e.id; opt.textContent = e.nombre; sel.appendChild(opt);
     });
-  document.getElementById('bloque-espacio').style.display = 'block';
+  document.getElementById('seccion-espacio').style.display = 'block';
 }
 
 function ocultarBloquesDependientes() {
   document.getElementById('bloque-areas').innerHTML = '';
-  document.getElementById('bloque-espacio').style.display        = 'none';
+  document.getElementById('seccion-espacio').style.display       = 'none';
   document.getElementById('bloque-geo').style.display            = 'none';
   document.getElementById('bloque-info-espacio').style.display   = 'none';
   document.getElementById('seccion-cooperativa').style.display   = 'none';
@@ -1079,7 +1087,7 @@ function alCambiarEspacio() {
 
   var tituloAreas = document.createElement('div');
   tituloAreas.className = 'areas-titulo';
-  tituloAreas.innerHTML = '<span class="num" style="background:var(--amarillo);color:var(--azul-oscuro);font-size:10px;font-weight:800;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-right:7px;">5</span>Evaluación de áreas';
+  tituloAreas.innerHTML = '<span class="num" style="background:var(--amarillo);color:var(--azul-oscuro);font-size:10px;font-weight:800;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-right:7px;">6</span>Evaluación de áreas';
   document.getElementById('bloque-areas').appendChild(tituloAreas);
 
   areas.forEach(function(area) {
@@ -1212,34 +1220,44 @@ function toggleArea(areaId) {
   document.getElementById('area-card-' + areaId).classList.toggle('abierta');
 }
 
-// ── INFO SITIO ───────────────────────────────────────────────
-function mostrarInfoSitio(sitio) {
-  var filas = [
-    ['Comuna',                sitio.comuna],
-    ['Superficie',            sitio.superficie],
-    ['Última visita',         sitio.ultimaVisita || 'Sin visitas registradas'],
-    ['Cooperativa',           sitio.cooperativa],
-    ['Referente territorial', sitio.referenteTerritorial],
-    ['Contacto',              sitio.contacto]
-  ];
-  document.getElementById('info-sitio-contenido').innerHTML = filas.map(function(f) {
+// ── FORMATO DE SUPERFICIE (2 decimales + hectáreas) ──────────
+// Acepta números o texto con coma decimal. Si el valor no es
+// numérico, lo muestra tal cual vino de la planilla.
+function formatearSuperficie(valor) {
+  if (valor === null || valor === undefined || String(valor).trim() === '') return '';
+  var n = parseFloat(String(valor).replace(',', '.').replace(/[^\d.\-]/g, ''));
+  if (isNaN(n)) return String(valor);
+  return n.toFixed(2).replace('.', ',') + ' ha';
+}
+
+// ── ARMADO DE RECUADROS DE INFO ──────────────────────────────
+function filasHTML(filas) {
+  return filas.map(function(f) {
     return '<div class="info-sitio-fila"><span class="clave">' + f[0] +
            '</span><span class="valor">' + (f[1] || '—') + '</span></div>';
   }).join('');
+}
+
+// ── INFO SITIO ───────────────────────────────────────────────
+function mostrarInfoSitio(sitio) {
+  document.getElementById('info-sitio-contenido').innerHTML = filasHTML([
+    ['Comuna',                sitio.comuna],
+    ['Superficie',            formatearSuperficie(sitio.superficie)],
+    ['Cooperativa',           sitio.cooperativa],
+    ['Referente territorial', sitio.referenteTerritorial],
+    ['Contacto',              sitio.contacto]
+  ]);
   document.getElementById('bloque-info-sitio').style.display = 'block';
 }
 
 // ── INFO ESPACIO ─────────────────────────────────────────────
 function mostrarInfoEspacio(espacio) {
-  var filas = [
-    ['Dirección',                  espacio.direccion],
-    ['Superficie de mantenimiento', espacio.superficieMant],
-    ['Información adicional',      espacio.infoAdicional]
-  ];
-  document.getElementById('info-espacio-contenido').innerHTML = filas.map(function(f) {
-    return '<div class="info-sitio-fila"><span class="clave">' + f[0] +
-           '</span><span class="valor">' + (f[1] || '—') + '</span></div>';
-  }).join('');
+  document.getElementById('info-espacio-contenido').innerHTML = filasHTML([
+    ['Dirección',                   espacio.direccion],
+    ['Superficie de mantenimiento', formatearSuperficie(espacio.superficieMant)],
+    ['Última visita',               espacio.ultimaVisita || 'Sin visitas registradas'],
+    ['Información adicional',       espacio.infoAdicional]
+  ]);
   document.getElementById('bloque-info-espacio').style.display = 'block';
 }
 
