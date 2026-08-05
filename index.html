@@ -1238,12 +1238,28 @@ function crearEvaluacion(evalId, item) {
 }
 
 // ── SELECCIÓN DE PILL ────────────────────────────────────────
+// Los ítems opcionales (cooperativa) se deseleccionan si se
+// vuelve a tocar la misma opción, para poder dejarlos en blanco.
 function selPill(pill, evalId, valor) {
+  var esOpcional = evalId.indexOf('coop-') === 0;
+  var yaEstaba   = pill.classList.contains('sel-' + valor);
+
   pill.parentElement.querySelectorAll('.pill').forEach(function(p) { p.className = 'pill'; });
-  pill.classList.add('sel-' + valor);
 
   var det = document.getElementById('det-' + evalId);
   var fz  = document.getElementById('fz-' + evalId);
+
+  if (esOpcional && yaEstaba) {
+    // Se deselecciona: limpiar también lo que hubiera cargado
+    if (det) det.classList.remove('visible', 'nivel-regular', 'nivel-mal');
+    if (fz)  fz.classList.remove('visible');
+    var t = document.getElementById('notas-' + evalId);
+    if (t) t.value = '';
+    quitarFoto(evalId);
+    return;
+  }
+
+  pill.classList.add('sel-' + valor);
   if (!det) return;
 
   // Notas visibles en Regular y Mal; foto solo en Mal
@@ -1255,7 +1271,6 @@ function selPill(pill, evalId, valor) {
     det.classList.remove('visible');
     if (fz) fz.classList.remove('visible');
   }
-  // Sacar el resaltado de "falta completar" si lo tenía
   var pg = document.getElementById('pg-' + evalId);
   if (pg) pg.classList.remove('falta-eval');
 }
@@ -1460,9 +1475,10 @@ function enviarRelevamiento() {
         if (card) card.classList.add('abierta');
       }
     });
-    var listado = faltantes.slice(0, 3).map(function(f) { return f.texto; }).join(' · ');
-    var extra   = faltantes.length > 3 ? ' y ' + (faltantes.length - 3) + ' más' : '';
-    mostrarMsg('Faltan ' + faltantes.length + ' evaluaciones por completar: ' + listado + extra, false);
+    var cuantas = faltantes.length;
+    mostrarMsg(cuantas === 1
+      ? 'Falta 1 evaluación por completar.'
+      : 'Faltan ' + cuantas + ' evaluaciones por completar.', false);
     var primero = document.getElementById('pg-' + faltantes[0].evalId);
     if (primero) primero.scrollIntoView({ behavior: 'smooth', block: 'center' });
     return;
