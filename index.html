@@ -66,6 +66,21 @@
     font-family: var(--font-titulos);
     font-size: 14px; font-weight: 700; color: var(--blanco);
   }
+  .header-acciones { display: flex; align-items: center; gap: 8px; }
+  .btn-refrescar {
+    width: 30px; height: 30px; flex-shrink: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,.3);
+    background: rgba(255,255,255,.12);
+    color: var(--blanco);
+    font-size: 14px; line-height: 1;
+    cursor: pointer; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .btn-refrescar:active { background: rgba(255,255,255,.28); }
+  .btn-refrescar.girando { animation: spin .8s linear infinite; }
+  .btn-refrescar:disabled { opacity: .5; cursor: not-allowed; }
+
   .estado-conexion {
     display: flex; align-items: center; gap: 5px;
     font-size: 10px; font-weight: 700;
@@ -141,6 +156,15 @@
     display: block; font-size: 11px; font-weight: 700;
     text-transform: uppercase; letter-spacing: .06em;
     color: var(--gris-muted); margin-bottom: 5px;
+  }
+  .req {
+    color: var(--mal-txt);
+    font-weight: 800;
+    margin-left: 2px;
+  }
+  select.falta {
+    border-color: var(--mal-borde);
+    background: var(--mal-bg);
   }
   select, textarea {
     width: 100%; padding: 12px;
@@ -469,9 +493,12 @@
         <div class="titulo">Carga de relevamientos</div>
       </div>
     </div>
-    <div class="estado-conexion online" id="estado-conexion">
-      <span class="punto"></span>
-      <span id="estado-conexion-texto">En línea</span>
+    <div class="header-acciones">
+      <button class="btn-refrescar" id="btn-refrescar" onclick="actualizarCatalogoManual()" title="Actualizar sitios, espacios y áreas">⟳</button>
+      <div class="estado-conexion online" id="estado-conexion">
+        <span class="punto"></span>
+        <span id="estado-conexion-texto">En línea</span>
+      </div>
     </div>
   </div>
 </header>
@@ -492,9 +519,9 @@
   <div class="seccion-cuerpo">
 
     <div class="campo">
-      <label>Relevador</label>
+      <label>Relevador <span class="req">*</span></label>
       <div class="select-wrap">
-        <select id="sel-relevador">
+        <select id="sel-relevador" onchange="this.classList.remove('falta')">
           <option value="">— Seleccioná tu nombre —</option>
         </select>
       </div>
@@ -950,7 +977,58 @@ function cargarCatalogo(esRefrescoSilencioso) {
     });
 }
 
-// ── INICIO ──────────────────────────────────────────────────
+// ── ACTUALIZACIÓN MANUAL DEL CATÁLOGO ────────────────────────
+// Fuerza la descarga de sitios, espacios y áreas sin esperar
+// las 24 hs del refresco automático. Útil cuando se cargó algo
+// nuevo en la planilla y el inspector lo necesita ya.
+function actualizarCatalogoManual() {
+  var btn = document.getElementById('btn-refrescar');
+
+  if (!navigator.onLine) {
+    mostrarMsg('⚠️ Sin señal. No se puede actualizar ahora; volvé a intentar cuando tengas conexión.', false);
+    return;
+  }
+
+  // Recordar qué tenía seleccionado para no perder el trabajo en curso
+  var sitioPrevio     = document.getElementById('sel-sitio').value;
+  var espacioPrevio   = document.getElementById('sel-espacio').value;
+  var relevadorPrevio = document.getElementById('sel-relevador').value;
+
+  btn.disabled = true;
+  btn.classList.add('girando');
+  ocultarMsg();
+
+  llamarAPI('datosIniciales')
+    .then(function(datos) {
+      aplicarCatalogo(datos);
+      guardarCatalogoLocal(datos);
+
+      // Restaurar la selección previa si sigue existiendo
+      if (relevadorPrevio) document.getElementById('sel-relevador').value = relevadorPrevio;
+      if (sitioPrevio) {
+        var selSitio = document.getElementById('sel-sitio');
+        selSitio.value = sitioPrevio;
+        if (selSitio.value === sitioPrevio) {
+          alCambiarSitio();
+          if (espacioPrevio) {
+            var selEsp = document.getElementById('sel-espacio');
+            selEsp.value = espacioPrevio;
+            if (selEsp.value === espacioPrevio) alCambiarEspacio();
+          }
+        }
+      }
+
+      btn.disabled = false;
+      btn.classList.remove('girando');
+      mostrarMsg('✅ Datos actualizados: ' + datos.sitios.length + ' sitios, ' +
+                 datos.espacios.length + ' espacios y ' + datos.areas.length + ' áreas.', true);
+    })
+    .catch(function() {
+      btn.disabled = false;
+      btn.classList.remove('girando');
+      mostrarMsg('❌ No se pudo actualizar. Revisá la conexión y probá de nuevo.', false);
+    });
+}
 window.addEventListener('load', function() {
   capturarFechaHora();
   capturarGPS();
@@ -1290,7 +1368,13 @@ function enviarRelevamiento() {
   var sitioId   = document.getElementById('sel-sitio').value;
   var espacioId = document.getElementById('sel-espacio').value;
 
-  if (!relevador) { mostrarMsg('Seleccioná tu nombre antes de enviar.', false); return; }
+  if (!relevador) {
+    var selRel = document.getElementById('sel-relevador');
+    selRel.classList.add('falta');
+    mostrarMsg('Seleccioná tu nombre en el campo "Relevador" antes de enviar.', false);
+    selRel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
   if (!sitioId)   { mostrarMsg('Seleccioná un sitio.', false); return; }
   if (!espacioId) { mostrarMsg('Seleccioná un espacio.', false); return; }
 
@@ -1390,8 +1474,10 @@ function guardarYAvisar(payload, btn) {
 
 // ── RESET ────────────────────────────────────────────────────
 function resetFormulario() {
-  document.getElementById('sel-relevador').value = '';
-  document.getElementById('sel-sitio').value     = '';
+  var selRel = document.getElementById('sel-relevador');
+  selRel.value = '';
+  selRel.classList.remove('falta');
+  document.getElementById('sel-sitio').value = '';
   document.getElementById('sel-espacio').innerHTML = '<option value="">— Seleccioná el espacio —</option>';
   ocultarBloquesDependientes();
   document.getElementById('bloque-info-sitio').style.display = 'none';
