@@ -299,6 +299,21 @@
   .pill.sel-mal     { background: var(--mal-bg);  color: var(--mal-txt);  border-color: var(--mal-borde); }
 
   /* ── DETALLE POR EVALUACIÓN (notas + foto) ── */
+  .btn-quitar-sel {
+    display: none;
+    margin-top: 7px;
+    font-family: var(--font);
+    font-size: 11px; font-weight: 700;
+    color: var(--gris-muted);
+    background: transparent;
+    border: 1px solid var(--gris-borde);
+    border-radius: 20px;
+    padding: 5px 11px;
+    cursor: pointer;
+  }
+  .btn-quitar-sel.visible { display: inline-block; }
+  .btn-quitar-sel:active { background: var(--gris-bg); }
+
   .eval-detalle {
     display: none;
     margin-top: 8px;
@@ -1211,6 +1226,12 @@ var ITEM_COOP = { id: 'coopSeguridad', label: 'Elementos de seguridad y vestimen
 
 // Construye el HTML de UNA evaluación. evalId debe ser único.
 function crearEvaluacion(evalId, item) {
+  // Los ítems opcionales (cooperativa) suman un botón para dejar
+  // la evaluación en blanco después de haber marcado algo.
+  var esOpcional  = evalId.indexOf('coop-') === 0;
+  var botonQuitar = esOpcional
+    ? '<button class="btn-quitar-sel" id="qs-' + evalId + '" onclick="quitarSeleccion(\'' + evalId + '\')">Quitar selección</button>'
+    : '';
   return '' +
     '<div class="eval-fila">' +
       '<div class="eval-label-linea">' +
@@ -1222,6 +1243,7 @@ function crearEvaluacion(evalId, item) {
         '<div class="pill" onclick="selPill(this,\'' + evalId + '\',\'regular\')">Regular</div>' +
         '<div class="pill" onclick="selPill(this,\'' + evalId + '\',\'mal\')">Mal</div>' +
       '</div>' +
+      botonQuitar +
       '<div class="eval-detalle" id="det-' + evalId + '">' +
         '<label class="mini-label">Notas <span class="aclara">(opcional)</span></label>' +
         '<textarea id="notas-' + evalId + '" rows="2" placeholder="Detallá lo observado..."></textarea>' +
@@ -1238,41 +1260,50 @@ function crearEvaluacion(evalId, item) {
 }
 
 // ── SELECCIÓN DE PILL ────────────────────────────────────────
-// Los ítems opcionales (cooperativa) se deseleccionan si se
-// vuelve a tocar la misma opción, para poder dejarlos en blanco.
 function selPill(pill, evalId, valor) {
-  var esOpcional = evalId.indexOf('coop-') === 0;
-  var yaEstaba   = pill.classList.contains('sel-' + valor);
-
   pill.parentElement.querySelectorAll('.pill').forEach(function(p) { p.className = 'pill'; });
+  pill.classList.add('sel-' + valor);
+
+  // En los ítems opcionales, mostrar el botón para volver a dejarlo en blanco
+  var btnQuitar = document.getElementById('qs-' + evalId);
+  if (btnQuitar) btnQuitar.classList.add('visible');
 
   var det = document.getElementById('det-' + evalId);
   var fz  = document.getElementById('fz-' + evalId);
-
-  if (esOpcional && yaEstaba) {
-    // Se deselecciona: limpiar también lo que hubiera cargado
-    if (det) det.classList.remove('visible', 'nivel-regular', 'nivel-mal');
-    if (fz)  fz.classList.remove('visible');
-    var t = document.getElementById('notas-' + evalId);
-    if (t) t.value = '';
-    quitarFoto(evalId);
-    return;
+  if (det) {
+    // Notas visibles en Regular y Mal; foto solo en Mal
+    det.classList.remove('nivel-regular', 'nivel-mal');
+    if (valor === 'regular' || valor === 'mal') {
+      det.classList.add('visible', 'nivel-' + valor);
+      if (fz) fz.classList.toggle('visible', valor === 'mal');
+    } else {
+      det.classList.remove('visible');
+      if (fz) fz.classList.remove('visible');
+    }
   }
 
-  pill.classList.add('sel-' + valor);
-  if (!det) return;
-
-  // Notas visibles en Regular y Mal; foto solo en Mal
-  det.classList.remove('nivel-regular', 'nivel-mal');
-  if (valor === 'regular' || valor === 'mal') {
-    det.classList.add('visible', 'nivel-' + valor);
-    if (fz) fz.classList.toggle('visible', valor === 'mal');
-  } else {
-    det.classList.remove('visible');
-    if (fz) fz.classList.remove('visible');
-  }
   var pg = document.getElementById('pg-' + evalId);
   if (pg) pg.classList.remove('falta-eval');
+}
+
+// ── DEJAR UNA EVALUACIÓN EN BLANCO ───────────────────────────
+// Retira la selección y limpia la nota y la foto que hubiera
+// cargado, para que no quede información huérfana.
+function quitarSeleccion(evalId) {
+  var pg = document.getElementById('pg-' + evalId);
+  if (pg) pg.querySelectorAll('.pill').forEach(function(p) { p.className = 'pill'; });
+
+  var det = document.getElementById('det-' + evalId);
+  if (det) det.classList.remove('visible', 'nivel-regular', 'nivel-mal');
+  var fz = document.getElementById('fz-' + evalId);
+  if (fz) fz.classList.remove('visible');
+
+  var t = document.getElementById('notas-' + evalId);
+  if (t) t.value = '';
+  quitarFoto(evalId);
+
+  var btn = document.getElementById('qs-' + evalId);
+  if (btn) btn.classList.remove('visible');
 }
 
 function getEstado(evalId) {
