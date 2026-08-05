@@ -10,9 +10,8 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --azul-oscuro:   #1D3343;   /* Color institucional principal (manual GCBA) */
-    --azul-oscuro-2: #16283536; /* variante para bordes sobre azul */
-    --amarillo:      #FFD200;   /* Acento institucional */
+    --azul-oscuro:   #1D3343;
+    --amarillo:      #FFD200;
     --amarillo-osc:  #E6BD00;
     --gris-texto:    #333333;
     --gris-muted:    #666666;
@@ -26,7 +25,7 @@
     --mal-bg:        #FFEBEE; --mal-txt:  #C62828; --mal-borde:  #EF5350;
     --radio:         4px;
     --font:          'Nunito Sans', Arial, sans-serif;
-    --font-titulos:  'Archivo', 'Nunito Sans', Arial, sans-serif;  /* Tipografía institucional */
+    --font-titulos:  'Archivo', 'Nunito Sans', Arial, sans-serif;
   }
 
   body {
@@ -59,31 +58,21 @@
   }
   .header-textos { line-height: 1.2; }
   .header-textos .org {
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .08em;
-    color: var(--blanco);
-    opacity: .65;
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .08em;
+    color: var(--blanco); opacity: .65;
   }
   .header-textos .titulo {
     font-family: var(--font-titulos);
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--blanco);
+    font-size: 14px; font-weight: 700; color: var(--blanco);
   }
   .estado-conexion {
     display: flex; align-items: center; gap: 5px;
     font-size: 10px; font-weight: 700;
-    padding: 4px 9px;
-    border-radius: 20px;
-    white-space: nowrap;
-    background: rgba(255,255,255,.12);
-    color: var(--blanco);
+    padding: 4px 9px; border-radius: 20px; white-space: nowrap;
+    background: rgba(255,255,255,.12); color: var(--blanco);
   }
-  .estado-conexion .punto {
-    width: 6px; height: 6px; border-radius: 50%;
-  }
+  .estado-conexion .punto { width: 6px; height: 6px; border-radius: 50%; }
   .estado-conexion.online .punto  { background: #4CAF50; }
   .estado-conexion.offline .punto { background: var(--amarillo); animation: parpadeo 1.4s infinite; }
   @keyframes parpadeo { 0%,100%{opacity:1} 50%{opacity:.2} }
@@ -93,10 +82,8 @@
     display: none;
     background: #FFF8E1;
     border-left: 4px solid #FFA726;
-    margin: 14px 12px 0;
-    padding: 11px 14px;
-    align-items: center;
-    gap: 10px;
+    margin: 14px 12px 0; padding: 11px 14px;
+    align-items: center; gap: 10px;
     border-radius: var(--radio);
   }
   .banner-pendientes.visible { display: flex; }
@@ -104,14 +91,10 @@
   .banner-pendientes .texto { flex: 1; font-size: 12px; color: #E65100; line-height: 1.4; }
   .banner-pendientes .texto strong { display: block; font-size: 13px; font-weight: 700; margin-bottom: 1px; }
   .banner-pendientes .btn-reintentar {
-    font-size: 11px; font-weight: 700;
-    color: #E65100;
-    background: var(--blanco);
-    border: 1px solid #FFA726;
-    border-radius: var(--radio);
-    padding: 6px 10px;
-    cursor: pointer;
-    white-space: nowrap;
+    font-size: 11px; font-weight: 700; color: #E65100;
+    background: var(--blanco); border: 1px solid #FFA726;
+    border-radius: var(--radio); padding: 6px 10px;
+    cursor: pointer; white-space: nowrap;
   }
 
   /* ── SECCIONES ── */
@@ -124,10 +107,8 @@
   }
   .seccion-titulo {
     font-family: var(--font-titulos);
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .1em;
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .1em;
     color: var(--azul-oscuro);
     padding: 10px 14px 8px;
     border-bottom: 2px solid var(--amarillo);
@@ -135,13 +116,21 @@
     display: flex; align-items: center; gap: 7px;
   }
   .seccion-titulo .num {
-    background: var(--amarillo);
-    color: var(--azul-oscuro);
+    background: var(--amarillo); color: var(--azul-oscuro);
     font-size: 10px; font-weight: 800;
-    width: 18px; height: 18px;
-    border-radius: 50%;
+    width: 18px; height: 18px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
+  }
+  .seccion-titulo .opcional {
+    margin-left: auto;
+    font-family: var(--font);
+    font-size: 9px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .05em;
+    color: var(--gris-muted);
+    background: var(--gris-bg);
+    border: 1px solid var(--gris-borde);
+    border-radius: 20px; padding: 2px 8px;
   }
   .seccion-cuerpo { padding: 14px; }
 
@@ -149,28 +138,21 @@
   .campo { margin-bottom: 14px; }
   .campo:last-child { margin-bottom: 0; }
   .campo label {
-    display: block;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .06em;
-    color: var(--gris-muted);
-    margin-bottom: 5px;
+    display: block; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .06em;
+    color: var(--gris-muted); margin-bottom: 5px;
   }
   select, textarea {
-    width: 100%;
-    padding: 12px;
+    width: 100%; padding: 12px;
     border: 1.5px solid var(--gris-borde);
     border-radius: var(--radio);
-    font-size: 16px;  /* 16px mínimo: evita que iPhone haga zoom automático al tocar el campo */
+    font-size: 16px;
     font-family: var(--font);
-    color: var(--gris-texto);
-    background: var(--blanco);
+    color: var(--gris-texto); background: var(--blanco);
     appearance: none; -webkit-appearance: none;
   }
   select:focus, textarea:focus {
-    outline: none;
-    border-color: var(--amarillo);
+    outline: none; border-color: var(--amarillo);
     box-shadow: 0 0 0 3px rgba(255,210,0,.2);
   }
   .select-wrap { position: relative; }
@@ -185,39 +167,33 @@
     display: flex; align-items: center; gap: 10px;
     background: var(--gris-bg);
     border: 1.5px solid var(--gris-borde);
-    border-radius: var(--radio);
-    padding: 10px 12px;
+    border-radius: var(--radio); padding: 10px 12px;
   }
   .campo-auto .icono { font-size: 17px; }
   .campo-auto .etiqueta { font-size: 11px; color: var(--gris-muted); }
   .campo-auto .valor { font-size: 13px; font-weight: 700; color: var(--gris-texto); margin-top: 1px; }
   .badge-auto {
-    margin-left: auto;
-    font-size: 10px; font-weight: 700;
-    background: var(--amarillo);
-    color: var(--gris-texto);
-    border-radius: 3px;
-    padding: 2px 6px;
-    white-space: nowrap;
+    margin-left: auto; font-size: 10px; font-weight: 700;
+    background: var(--amarillo); color: var(--gris-texto);
+    border-radius: 3px; padding: 2px 6px; white-space: nowrap;
   }
 
-  /* ── INFO SITIO ── */
+  /* ── INFO SITIO / ESPACIO ── */
   .info-sitio {
     background: var(--gris-bg);
     border: 1.5px solid var(--gris-borde);
     border-radius: var(--radio);
-    overflow: hidden;
-    margin-top: 6px;
+    overflow: hidden; margin-top: 6px;
   }
   .info-sitio-fila {
-    display: flex; justify-content: space-between; align-items: center;
+    display: flex; justify-content: space-between; align-items: flex-start;
     padding: 8px 12px;
     border-bottom: 1px solid var(--gris-borde);
-    font-size: 13px;
+    font-size: 13px; gap: 10px;
   }
   .info-sitio-fila:last-child { border-bottom: none; }
-  .info-sitio-fila .clave { color: var(--gris-muted); font-size: 12px; }
-  .info-sitio-fila .valor { font-weight: 700; color: var(--gris-texto); text-align: right; max-width: 55%; }
+  .info-sitio-fila .clave { color: var(--gris-muted); font-size: 12px; flex-shrink: 0; }
+  .info-sitio-fila .valor { font-weight: 700; color: var(--gris-texto); text-align: right; }
 
   /* ── ÁREAS ── */
   .areas-titulo {
@@ -230,24 +206,25 @@
   .area-card {
     border: 1.5px solid var(--gris-borde);
     border-radius: var(--radio);
-    margin: 8px 12px 0;
-    overflow: hidden;
+    margin: 8px 12px 0; overflow: hidden;
     background: var(--blanco);
   }
   .area-header {
     display: flex; align-items: center; gap: 10px;
-    padding: 12px 14px;
-    background: var(--blanco);
+    padding: 12px 14px; background: var(--blanco);
     cursor: pointer; user-select: none;
     border-left: 4px solid var(--amarillo);
   }
-  .area-icono { font-size: 20px; }
-  .area-nombre { font-family: var(--font-titulos); font-size: 14px; font-weight: 600; flex: 1; color: var(--azul-oscuro); }
-  .area-chevron { font-size: 13px; color: var(--gris-muted); transition: transform .2s; }
+  .area-icono { font-size: 20px; flex-shrink: 0; }
+  .area-nombre {
+    font-family: var(--font-titulos);
+    font-size: 14px; font-weight: 600; flex: 1;
+    color: var(--azul-oscuro); line-height: 1.3;
+  }
+  .area-chevron { font-size: 13px; color: var(--gris-muted); transition: transform .2s; flex-shrink: 0; }
   .area-card.abierta .area-chevron { transform: rotate(180deg); }
   .area-body {
-    display: none;
-    padding: 14px;
+    display: none; padding: 14px;
     border-top: 1.5px solid var(--gris-borde);
     background: var(--gris-card);
   }
@@ -255,22 +232,37 @@
 
   /* ── EVALUACIONES ── */
   .eval-fila { margin-bottom: 12px; }
+  .eval-fila:last-child { margin-bottom: 0; }
+  .eval-label-linea {
+    display: flex; align-items: center; gap: 6px; margin-bottom: 6px;
+  }
   .eval-label {
     font-size: 11px; font-weight: 700;
     text-transform: uppercase; letter-spacing: .06em;
     color: var(--gris-muted);
-    margin-bottom: 6px; display: block;
   }
+  .btn-ayuda {
+    width: 17px; height: 17px; flex-shrink: 0;
+    border-radius: 50%;
+    border: 1.5px solid var(--azul-oscuro);
+    background: var(--blanco);
+    color: var(--azul-oscuro);
+    font-family: var(--font-titulos);
+    font-size: 10px; font-weight: 800;
+    line-height: 1; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 0;
+  }
+  .btn-ayuda:active { background: var(--amarillo); }
   .pill-grupo { display: flex; gap: 6px; }
   .pill {
     flex: 1; text-align: center;
     font-size: 14px; font-weight: 700;
     font-family: var(--font);
-    padding: 11px 4px;   /* target táctil más grande para uso en campo */
+    padding: 11px 4px;
     border-radius: var(--radio);
     border: 1.5px solid var(--gris-borde);
-    color: var(--gris-muted);
-    background: var(--blanco);
+    color: var(--gris-muted); background: var(--blanco);
     cursor: pointer; transition: all .15s;
   }
   .pill:active { transform: scale(.97); }
@@ -280,12 +272,10 @@
 
   /* ── FOTO ── */
   .foto-zona {
-    display: none;
-    margin-top: 12px;
+    display: none; margin-top: 12px;
     border: 2px dashed var(--mal-borde);
     border-radius: var(--radio);
-    padding: 12px;
-    background: var(--mal-bg);
+    padding: 12px; background: var(--mal-bg);
   }
   .foto-zona.visible { display: block; }
   .foto-zona p { font-size: 12px; font-weight: 700; color: var(--mal-txt); margin-bottom: 8px; }
@@ -293,8 +283,7 @@
   .foto-btn-label {
     display: inline-flex; align-items: center; gap: 6px;
     font-size: 13px; font-weight: 700; font-family: var(--font);
-    color: var(--mal-txt);
-    background: var(--blanco);
+    color: var(--mal-txt); background: var(--blanco);
     border: 1.5px solid var(--mal-borde);
     border-radius: var(--radio);
     padding: 8px 14px; cursor: pointer;
@@ -306,27 +295,74 @@
   .notas-area { margin-top: 14px; border-top: 1px solid var(--gris-borde); padding-top: 14px; }
   textarea { resize: none; line-height: 1.5; }
 
-  /* ── MAPA DE GEOLOCALIZACIÓN ── */
+  /* ── MAPA ── */
   .geo-mapa {
     border: 1.5px solid var(--gris-borde);
     border-radius: var(--radio);
-    overflow: hidden;
-    height: 180px;
+    overflow: hidden; height: 180px;
   }
-  .geo-mapa iframe {
-    width: 100%; height: 100%;
-    border: 0; display: block;
+  .geo-mapa iframe { width: 100%; height: 100%; border: 0; display: block; }
+
+  /* ── MODAL DE AYUDA ── */
+  .modal-fondo {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(29,51,67,.6);
+    z-index: 500;
+    align-items: center; justify-content: center;
+    padding: 20px;
   }
+  .modal-fondo.visible { display: flex; }
+  .modal-caja {
+    background: var(--blanco);
+    border-radius: var(--radio);
+    width: 100%; max-width: 420px;
+    max-height: 82vh; overflow-y: auto;
+    border-top: 4px solid var(--amarillo);
+  }
+  .modal-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px; border-bottom: 1px solid var(--gris-borde);
+    position: sticky; top: 0; background: var(--blanco);
+  }
+  .modal-header h3 {
+    font-family: var(--font-titulos);
+    font-size: 14px; font-weight: 700;
+    color: var(--azul-oscuro); flex: 1; line-height: 1.3;
+  }
+  .modal-cerrar {
+    width: 28px; height: 28px; flex-shrink: 0;
+    border: none; background: var(--gris-bg);
+    border-radius: 50%; cursor: pointer;
+    font-size: 15px; color: var(--gris-muted);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .modal-cuerpo { padding: 14px; }
+  .criterio {
+    border-left: 4px solid var(--gris-borde);
+    padding: 8px 0 8px 11px;
+    margin-bottom: 12px;
+  }
+  .criterio:last-child { margin-bottom: 0; }
+  .criterio.bien    { border-left-color: var(--bien-borde); }
+  .criterio.regular { border-left-color: var(--reg-borde); }
+  .criterio.mal     { border-left-color: var(--mal-borde); }
+  .criterio .etiqueta {
+    font-family: var(--font-titulos);
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .06em;
+    margin-bottom: 3px; display: block;
+  }
+  .criterio.bien .etiqueta    { color: var(--bien-txt); }
+  .criterio.regular .etiqueta { color: var(--reg-txt); }
+  .criterio.mal .etiqueta     { color: var(--mal-txt); }
+  .criterio p { font-size: 13px; line-height: 1.5; color: var(--gris-texto); }
 
   /* ── BOTÓN ENVIAR ── */
   .enviar-wrap { padding: 16px 12px 0; }
   .btn-enviar {
-    width: 100%;
-    background: var(--azul-oscuro);
-    color: var(--blanco);
-    border: none;
-    border-radius: var(--radio);
-    padding: 15px;
+    width: 100%; background: var(--azul-oscuro); color: var(--blanco);
+    border: none; border-radius: var(--radio); padding: 15px;
     font-size: 15px; font-weight: 700;
     font-family: var(--font-titulos);
     text-transform: uppercase; letter-spacing: .06em;
@@ -341,34 +377,23 @@
   /* ── REPORTAR ERROR ── */
   .reporte-wrap { padding: 10px 12px 0; }
   .btn-reporte {
-    width: 100%;
-    background: transparent;
-    color: var(--gris-muted);
+    width: 100%; background: transparent; color: var(--gris-muted);
     border: 1.5px dashed var(--gris-borde);
-    border-radius: var(--radio);
-    padding: 11px;
-    font-size: 13px; font-weight: 700;
-    font-family: var(--font);
+    border-radius: var(--radio); padding: 11px;
+    font-size: 13px; font-weight: 700; font-family: var(--font);
     cursor: pointer;
     display: flex; align-items: center; justify-content: center; gap: 7px;
   }
   .reporte-panel {
-    display: none;
-    background: var(--blanco);
+    display: none; background: var(--blanco);
     border: 1.5px solid var(--gris-borde);
-    border-radius: var(--radio);
-    padding: 14px;
-    margin-top: 8px;
+    border-radius: var(--radio); padding: 14px; margin-top: 8px;
   }
   .reporte-panel.visible { display: block; }
   .btn-reporte-enviar {
-    margin-top: 10px;
-    width: 100%;
-    background: var(--gris-texto);
-    color: var(--blanco);
-    border: none;
-    border-radius: var(--radio);
-    padding: 11px;
+    margin-top: 10px; width: 100%;
+    background: var(--gris-texto); color: var(--blanco);
+    border: none; border-radius: var(--radio); padding: 11px;
     font-size: 13px; font-weight: 700;
     font-family: var(--font-titulos);
     text-transform: uppercase; letter-spacing: .05em;
@@ -388,41 +413,34 @@
 
   /* ── PANTALLA DE CARGA ── */
   #pantalla-carga {
-    position: fixed; inset: 0;
-    background: var(--azul-oscuro);
+    position: fixed; inset: 0; background: var(--azul-oscuro);
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    z-index: 999; gap: 10px;
-    padding: 0 24px; text-align: center;
+    z-index: 999; gap: 10px; padding: 0 24px; text-align: center;
   }
   #pantalla-carga .logo-carga { font-size: 40px; margin-bottom: 8px; }
   #pantalla-carga .titulo-carga {
     font-family: var(--font-titulos);
-    font-size: 19px; font-weight: 700; color: var(--blanco);
-    line-height: 1.3;
+    font-size: 19px; font-weight: 700; color: var(--blanco); line-height: 1.3;
   }
   #pantalla-carga .direccion-carga {
     font-size: 11px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: .08em; color: var(--blanco); opacity: .75;
-    line-height: 1.5;
+    letter-spacing: .08em; color: var(--blanco); opacity: .75; line-height: 1.5;
   }
   #pantalla-carga .gobierno-carga {
     font-size: 10px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: .1em; color: var(--amarillo);
-    line-height: 1.5;
+    letter-spacing: .1em; color: var(--amarillo); line-height: 1.5;
   }
   .spinner {
     width: 32px; height: 32px;
     border: 3px solid rgba(255,255,255,.25);
     border-top-color: var(--blanco);
-    border-radius: 50%;
-    animation: spin .8s linear infinite;
+    border-radius: 50%; animation: spin .8s linear infinite;
     margin-top: 14px;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
   .pie {
-    text-align: center;
-    font-size: 10px; color: var(--gris-muted);
+    text-align: center; font-size: 10px; color: var(--gris-muted);
     padding: 20px 12px 0;
     text-transform: uppercase; letter-spacing: .06em;
   }
@@ -432,43 +450,23 @@
 
 <!-- ✏️ ZONA EDITABLE — pantalla de carga inicial -->
 <div id="pantalla-carga">
-  <div class="logo-carga"><img src="https://lh3.googleusercontent.com/d/1kktmlDGDMsfXoWwnErplZrJoFxuU3WQQ" style="width:64px; height:64px; object-fit:contain;" alt="Logo"></div>  <!-- ✏️ LOGO -->
-  <div class="titulo-carga">Programa Recuperación de Espacios Comunitarios</div>                       <!-- ✏️ 1° PROGRAMA -->
-  <div class="direccion-carga">Dirección General de Competencias Comunales y Talleres</div>            <!-- ✏️ 2° DIRECCIÓN -->
-  <div class="gobierno-carga">Gobierno de la Ciudad de Buenos Aires</div>                              <!-- ✏️ 3° GOBIERNO -->
+  <div class="logo-carga"><img src="https://lh3.googleusercontent.com/d/1kktmlDGDMsfXoWwnErplZrJoFxuU3WQQ" style="width:64px; height:64px; object-fit:contain;" alt="Logo"></div>
+  <div class="titulo-carga">Programa Recuperación de Espacios Comunitarios</div>
+  <div class="direccion-carga">Dirección General de Competencias Comunales y Talleres</div>
+  <div class="gobierno-carga">Gobierno de la Ciudad de Buenos Aires</div>
   <div class="spinner"></div>
 </div>
 
-<!-- ╔══════════════════════════════════════════════════════════╗
-     ║  ✏️ ZONA EDITABLE — TÍTULOS Y LOGO DEL ENCABEZADO          ║
-     ║                                                            ║
-     ║  • "Gobierno de la Ciudad"  → línea chica de arriba        ║
-     ║  • "Relevamiento EEP"       → título principal             ║
-     ║  • El <img> dentro de "header-escudo" es el logo actual.  ║
-     ║                                                            ║
-     ║  PARA USAR UNA IMAGEN REAL EN VEZ DEL ÍCONO:               ║
-     ║  Reemplazá la línea del emoji por una etiqueta <img>:      ║
-     ║                                                            ║
-     ║  <img src="URL_DE_LA_IMAGEN" style="width:100%;            ║
-     ║       height:100%; object-fit:contain;">                   ║
-     ║                                                            ║
-     ║  La URL puede ser:                                         ║
-     ║  a) Una imagen subida a un sitio público                   ║
-     ║  b) Una imagen de Google Drive compartida como pública,    ║
-     ║     con el formato:                                        ║
-     ║     https://lh3.googleusercontent.com/d/ID_DEL_ARCHIVO     ║
-     ║     (reemplazá ID_DEL_ARCHIVO por el ID que aparece en     ║
-     ║     el link de compartir de Drive)                         ║
-     ╚══════════════════════════════════════════════════════════╝ -->
+<!-- ✏️ ZONA EDITABLE — títulos y logo del encabezado -->
 <header class="app-header">
   <div class="app-header-inner">
     <div class="header-marca">
-      <div class="header-escudo" style="background:transparent;">
+      <div class="header-escudo">
         <img src="https://lh3.googleusercontent.com/d/1kktmlDGDMsfXoWwnErplZrJoFxuU3WQQ" style="width:100%; height:100%; object-fit:contain;" alt="Logo">
-      </div>  <!-- ✏️ LOGO -->
+      </div>
       <div class="header-textos">
-        <div class="org">Programa Recuperación de Espacios Comunitarios</div>       <!-- ✏️ ORGANISMO -->
-        <div class="titulo">Carga de relevamientos</div>          <!-- ✏️ TÍTULO DE LA APP -->
+        <div class="org">Programa Recuperación de Espacios Comunitarios</div>
+        <div class="titulo">Carga de relevamientos</div>
       </div>
     </div>
     <div class="estado-conexion online" id="estado-conexion">
@@ -490,10 +488,7 @@
 
 <!-- SECCIÓN 1: IDENTIFICACIÓN -->
 <div class="seccion">
-  <div class="seccion-titulo">
-    <span class="num">1</span>
-    Identificación
-  </div>
+  <div class="seccion-titulo"><span class="num">1</span> Identificación</div>
   <div class="seccion-cuerpo">
 
     <div class="campo">
@@ -532,12 +527,9 @@
   </div>
 </div>
 
-<!-- SECCIÓN 2: SITIO -->
+<!-- SECCIÓN 2: SITIO Y ESPACIO -->
 <div class="seccion">
-  <div class="seccion-titulo">
-    <span class="num">2</span>
-    Sitio y espacio
-  </div>
+  <div class="seccion-titulo"><span class="num">2</span> Sitio y espacio</div>
   <div class="seccion-cuerpo">
 
     <div class="campo">
@@ -565,17 +557,73 @@
       </div>
     </div>
 
-    <div id="bloque-info-sitio" style="display:none">
-      <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gris-muted);display:block;margin-bottom:0;">
-        Datos del sitio
-      </label>
+    <div class="campo" id="bloque-info-espacio" style="display:none">
+      <label>Datos del espacio</label>
+      <div class="info-sitio" id="info-espacio-contenido"></div>
+    </div>
+
+    <div class="campo" id="bloque-info-sitio" style="display:none">
+      <label>Datos del sitio</label>
       <div class="info-sitio" id="info-sitio-contenido"></div>
     </div>
 
   </div>
 </div>
 
-<!-- SECCIÓN 3: ÁREAS (generadas dinámicamente) -->
+<!-- SECCIÓN 3: COOPERATIVA (OPCIONAL) -->
+<div class="seccion" id="seccion-cooperativa" style="display:none">
+  <div class="seccion-titulo">
+    <span class="num">3</span> Cooperativa
+    <span class="opcional">Opcional</span>
+  </div>
+  <div class="seccion-cuerpo">
+    <div class="eval-fila">
+      <div class="eval-label-linea">
+        <span class="eval-label">Elementos de seguridad y vestimenta</span>
+        <button class="btn-ayuda" onclick="abrirAyuda('coopSeguridad')" title="Ver criterios">?</button>
+      </div>
+      <div class="pill-grupo" id="pg-coop-seguridad">
+        <div class="pill" onclick="selPillSimple(this,'bien')">Bien</div>
+        <div class="pill" onclick="selPillSimple(this,'regular')">Regular</div>
+        <div class="pill" onclick="selPillSimple(this,'mal')">Mal</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECCIÓN 4: EVALUACIÓN DEL ESPACIO -->
+<div class="seccion" id="seccion-espacio-eval" style="display:none">
+  <div class="seccion-titulo"><span class="num">4</span> Evaluación del espacio</div>
+  <div class="seccion-cuerpo">
+
+    <div class="eval-fila">
+      <div class="eval-label-linea">
+        <span class="eval-label">Limpieza (barrido, cestos y bolsas)</span>
+        <button class="btn-ayuda" onclick="abrirAyuda('espLimpieza')" title="Ver criterios">?</button>
+      </div>
+      <div class="pill-grupo" id="pg-esp-limpieza">
+        <div class="pill" onclick="selPillSimple(this,'bien')">Bien</div>
+        <div class="pill" onclick="selPillSimple(this,'regular')">Regular</div>
+        <div class="pill" onclick="selPillSimple(this,'mal')">Mal</div>
+      </div>
+    </div>
+
+    <div class="eval-fila">
+      <div class="eval-label-linea">
+        <span class="eval-label">Césped y jardinería</span>
+        <button class="btn-ayuda" onclick="abrirAyuda('espJardineria')" title="Ver criterios">?</button>
+      </div>
+      <div class="pill-grupo" id="pg-esp-jardineria">
+        <div class="pill" onclick="selPillSimple(this,'bien')">Bien</div>
+        <div class="pill" onclick="selPillSimple(this,'regular')">Regular</div>
+        <div class="pill" onclick="selPillSimple(this,'mal')">Mal</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- SECCIÓN 5: ÁREAS (generadas dinámicamente) -->
 <div id="bloque-areas"></div>
 
 <!-- MENSAJE -->
@@ -595,22 +643,92 @@
   </button>
   <div class="reporte-panel" id="reporte-panel">
     <label class="eval-label">Describí el error o la corrección necesaria</label>
-    <textarea id="reporte-texto" rows="4" placeholder="Ej: el sitio Calaza figura con la cooperativa equivocada / falta el espacio Plaza Norte / la superficie está mal cargada..."></textarea>
+    <textarea id="reporte-texto" rows="4" placeholder="Ej: el sitio figura con la cooperativa equivocada / falta un espacio / la superficie está mal cargada..."></textarea>
     <button class="btn-reporte-enviar" id="btn-reporte-enviar" onclick="enviarReporte()">Enviar reporte</button>
   </div>
 </div>
 
-<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios</div>  <!-- ✏️ PIE DE PÁGINA -->
+<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios</div>
+
+<!-- MODAL DE AYUDA -->
+<div class="modal-fondo" id="modal-ayuda" onclick="cerrarAyudaFondo(event)">
+  <div class="modal-caja">
+    <div class="modal-header">
+      <h3 id="modal-titulo">Criterios de evaluación</h3>
+      <button class="modal-cerrar" onclick="cerrarAyuda()">✕</button>
+    </div>
+    <div class="modal-cuerpo" id="modal-cuerpo"></div>
+  </div>
+</div>
 
 <script>
 // ╔══════════════════════════════════════════════════════════╗
 // ║  ✏️ CONFIGURACIÓN OBLIGATORIA                              ║
 // ║  Pegá acá la URL de tu implementación de Apps Script       ║
-// ║  (la que termina en /exec). La página le habla por acá.    ║
 // ╚══════════════════════════════════════════════════════════╝
 var API_URL = 'https://script.google.com/macros/s/AKfycbx4aCRqXH52o_38yAyfB-Ia_vT-czV_6J80vBDdbu1Qv15uPxQLgNBijG-YiecV713krg/exec';
 
-// ── LLAMADA A LA API (sin cookies de Google → sin bug de cuentas)
+// ╔══════════════════════════════════════════════════════════╗
+// ║  ✏️ ZONA EDITABLE — CRITERIOS DE EVALUACIÓN                ║
+// ║                                                            ║
+// ║  Estos son los textos que aparecen al tocar el botón "?"   ║
+// ║  al lado de cada ítem. Son BORRADORES: reemplazalos por    ║
+// ║  los criterios oficiales del programa.                     ║
+// ║                                                            ║
+// ║  Para editar, cambiá solo el texto entre comillas.         ║
+// ╚══════════════════════════════════════════════════════════╝
+var AYUDAS = {
+  coopSeguridad: {
+    titulo: 'Elementos de seguridad y vestimenta',
+    bien:    'Todo el personal presente usa la vestimenta identificatoria completa y los elementos de protección personal que corresponden a la tarea que está realizando.',
+    regular: 'La mayoría del personal cumple, pero falta algún elemento no crítico o hay prendas en mal estado o incompletas.',
+    mal:     'Falta vestimenta identificatoria en general, o no se usan elementos de protección personal necesarios para la tarea.'
+  },
+  espLimpieza: {
+    titulo: 'Limpieza del espacio (barrido, cestos y bolsas)',
+    bien:    'El espacio está barrido, los cestos tienen bolsa colocada y no están desbordados. No se observan residuos dispersos.',
+    regular: 'Hay barrido parcial o residuos dispersos aislados, o algún cesto sin bolsa o cerca de su capacidad.',
+    mal:     'Falta barrido general, hay acumulación de residuos, o los cestos están desbordados o sin bolsa.'
+  },
+  espJardineria: {
+    titulo: 'Césped y jardinería del espacio',
+    bien:    'El césped está cortado a la altura adecuada, los canteros están desmalezados y la vegetación mantenida.',
+    regular: 'El césped está algo crecido o el corte es disparejo, o hay malezas puntuales en canteros.',
+    mal:     'Césped muy crecido, canteros invadidos por malezas o vegetación sin mantenimiento.'
+  },
+  limpieza: {
+    titulo: 'Limpieza del área',
+    bien:    'El área está limpia, sin residuos ni acumulación de suciedad en la superficie ni en el equipamiento.',
+    regular: 'Hay residuos dispersos o suciedad puntual que no compromete el uso del área.',
+    mal:     'Acumulación de residuos o suciedad que dificulta o impide el uso normal del área.'
+  },
+  luminaria: {
+    titulo: 'Luminaria',
+    bien:    'Todas las luminarias del área están completas y en funcionamiento.',
+    regular: 'Hay alguna luminaria apagada, intermitente o con la carcasa dañada, pero el área conserva iluminación.',
+    mal:     'Varias luminarias fuera de servicio, faltantes o con daño que implique riesgo eléctrico. El área queda sin iluminación.'
+  },
+  equipamiento: {
+    titulo: 'Equipamiento',
+    bien:    'El equipamiento está completo, firme y en condiciones de uso, sin roturas ni faltantes.',
+    regular: 'Desgaste visible, pintura saltada o alguna pieza floja, pero el equipamiento se puede usar.',
+    mal:     'Equipamiento roto, faltante, inestable o con riesgo para quien lo use. No debería utilizarse.'
+  },
+  jardineria: {
+    titulo: 'Jardinería del área',
+    bien:    'Césped cortado, canteros desmalezados y vegetación del área mantenida.',
+    regular: 'Césped crecido o malezas puntuales que no afectan el uso del área.',
+    mal:     'Vegetación sin mantenimiento que invade el área o impide su uso normal.'
+  },
+  vereda: {
+    titulo: 'Estado de vereda',
+    bien:    'Solado completo y nivelado, sin baldosas flojas, roturas ni desniveles.',
+    regular: 'Baldosas flojas o roturas aisladas que no generan riesgo de tropiezo.',
+    mal:     'Roturas extendidas, hundimientos o desniveles que generan riesgo de caída o impiden la circulación.'
+  }
+};
+
+// ── LLAMADA A LA API ────────────────────────────────────────
 function llamarAPI(accion, datos) {
   return fetch(API_URL, {
     method: 'POST',
@@ -627,6 +745,24 @@ var DB        = { relevadores: [], sitios: [], espacios: [], areas: [] };
 var gpsLat    = null;
 var gpsLon    = null;
 var fechaHora = null;
+
+// ── MODAL DE AYUDA ──────────────────────────────────────────
+function abrirAyuda(clave) {
+  var a = AYUDAS[clave];
+  if (!a) return;
+  document.getElementById('modal-titulo').textContent = a.titulo;
+  document.getElementById('modal-cuerpo').innerHTML =
+    '<div class="criterio bien"><span class="etiqueta">Bien</span><p>'    + a.bien    + '</p></div>' +
+    '<div class="criterio regular"><span class="etiqueta">Regular</span><p>' + a.regular + '</p></div>' +
+    '<div class="criterio mal"><span class="etiqueta">Mal</span><p>'      + a.mal     + '</p></div>';
+  document.getElementById('modal-ayuda').classList.add('visible');
+}
+function cerrarAyuda() {
+  document.getElementById('modal-ayuda').classList.remove('visible');
+}
+function cerrarAyudaFondo(e) {
+  if (e.target.id === 'modal-ayuda') cerrarAyuda();
+}
 
 // ════════════════════════════════════════════════════════════
 //  COLA OFFLINE — IndexedDB
@@ -730,10 +866,7 @@ function actualizarEstadoConexion() {
     el.className = 'estado-conexion online';
     texto.textContent = 'En línea';
     procesarColaPendientes();
-    // Si el catálogo no cargó o está viejo, refrescarlo al volver la señal
-    if (DB.sitios.length === 0 || catalogoVencido()) {
-      cargarCatalogo(true);
-    }
+    if (DB.sitios.length === 0 || catalogoVencido()) cargarCatalogo(true);
   } else {
     el.className = 'estado-conexion offline';
     texto.textContent = 'Sin señal';
@@ -745,26 +878,20 @@ window.addEventListener('offline', actualizarEstadoConexion);
 setInterval(function() {
   if (navigator.onLine) {
     procesarColaPendientes();
-    // Actualización diaria del catálogo si la app queda abierta
     if (catalogoVencido()) cargarCatalogo(true);
   }
 }, 30000);
 
 // ════════════════════════════════════════════════════════════
 //  CATÁLOGO CON CACHÉ LOCAL
-//  Guarda sitios/espacios/áreas en el celular para que la app
-//  funcione aunque se abra sin señal. Se actualiza cada vez
-//  que se abre con conexión y, si queda abierta, al menos una
-//  vez por día.
 // ════════════════════════════════════════════════════════════
-var CLAVE_CATALOGO   = 'relevamiento_catalogo';
-var UN_DIA_MS        = 24 * 60 * 60 * 1000;
+var CLAVE_CATALOGO = 'relevamiento_catalogo';
+var UN_DIA_MS      = 24 * 60 * 60 * 1000;
 
 function guardarCatalogoLocal(datos) {
   try {
     localStorage.setItem(CLAVE_CATALOGO, JSON.stringify({
-      datos: datos,
-      guardadoEn: new Date().getTime()
+      datos: datos, guardadoEn: new Date().getTime()
     }));
   } catch(e) { /* si no hay espacio, la app sigue funcionando online */ }
 }
@@ -784,7 +911,6 @@ function catalogoVencido() {
 
 function aplicarCatalogo(datos) {
   DB = datos;
-  // Limpiar selects antes de repoblar (por si es una actualización)
   document.getElementById('sel-relevador').innerHTML = '<option value="">— Seleccioná tu nombre —</option>';
   document.getElementById('sel-sitio').innerHTML     = '<option value="">— Seleccioná el sitio —</option>';
   poblarRelevadores();
@@ -799,7 +925,6 @@ function cargarCatalogo(esRefrescoSilencioso) {
       return true;
     })
     .catch(function() {
-      // Sin conexión → intentar el caché local
       var cache = leerCatalogoLocal();
       if (cache && cache.datos) {
         aplicarCatalogo(cache.datos);
@@ -874,13 +999,17 @@ function poblarSitios() {
   });
 }
 
+// ── NOMBRE COMPLETO DEL ÁREA (nombre + detalle de la columna E) ──
+function nombreCompletoArea(area) {
+  var det = (area.detalle || '').toString().trim();
+  return det ? (area.nombre + ' — ' + det) : area.nombre;
+}
+
 // ── CAMBIO DE SITIO ─────────────────────────────────────────
 function alCambiarSitio() {
   var sitioId = document.getElementById('sel-sitio').value;
-  document.getElementById('bloque-areas').innerHTML = '';
-  document.getElementById('bloque-espacio').style.display      = 'none';
-  document.getElementById('bloque-info-sitio').style.display   = 'none';
-  document.getElementById('bloque-geo').style.display          = 'none';
+  ocultarBloquesDependientes();
+  document.getElementById('bloque-info-sitio').style.display = 'none';
   if (!sitioId) return;
 
   var sitio = DB.sitios.find(function(s) { return String(s.id) === String(sitioId); });
@@ -897,15 +1026,31 @@ function alCambiarSitio() {
   document.getElementById('bloque-espacio').style.display = 'block';
 }
 
+function ocultarBloquesDependientes() {
+  document.getElementById('bloque-areas').innerHTML = '';
+  document.getElementById('bloque-espacio').style.display        = 'none';
+  document.getElementById('bloque-geo').style.display            = 'none';
+  document.getElementById('bloque-info-espacio').style.display   = 'none';
+  document.getElementById('seccion-cooperativa').style.display   = 'none';
+  document.getElementById('seccion-espacio-eval').style.display  = 'none';
+  limpiarPillGrupo('pg-coop-seguridad');
+  limpiarPillGrupo('pg-esp-limpieza');
+  limpiarPillGrupo('pg-esp-jardineria');
+}
+
 // ── CAMBIO DE ESPACIO ────────────────────────────────────────
 function alCambiarEspacio() {
   var espacioId = document.getElementById('sel-espacio').value;
   document.getElementById('bloque-areas').innerHTML = '';
-  document.getElementById('bloque-geo').style.display = 'none';
+  document.getElementById('bloque-geo').style.display           = 'none';
+  document.getElementById('bloque-info-espacio').style.display  = 'none';
+  document.getElementById('seccion-cooperativa').style.display  = 'none';
+  document.getElementById('seccion-espacio-eval').style.display = 'none';
   if (!espacioId) return;
 
-  // Mostrar mapa si el espacio tiene coordenadas cargadas (columna GEO)
   var espacio = DB.espacios.find(function(e) { return String(e.id) === String(espacioId); });
+
+  // Mapa (si el espacio tiene coordenadas en la columna GEO)
   if (espacio && espacio.geo && String(espacio.geo).trim() !== '') {
     var coords = String(espacio.geo).replace(/\s+/g, '');
     document.getElementById('geo-iframe').src =
@@ -913,20 +1058,28 @@ function alCambiarEspacio() {
     document.getElementById('bloque-geo').style.display = 'block';
   }
 
+  // Datos del espacio (dirección, superficie de mantenimiento, info adicional)
+  if (espacio) mostrarInfoEspacio(espacio);
+
+  // Secciones de evaluación previa
+  document.getElementById('seccion-cooperativa').style.display  = 'block';
+  document.getElementById('seccion-espacio-eval').style.display = 'block';
+
+  // Áreas
   var areas = DB.areas.filter(function(a) { return String(a.espacioId) === String(espacioId); });
   var iconos = {
     'Posta deportiva':   '🏋️',
     'Patio de juegos':   '🛝',
     'Área de encuentro': '🤝',
     'Playón deportivo':  '⚽',
-    'Cancha':  '⚽',
+    'Cancha':            '⚽',
     'Canil':             '🐕',
-    'Isla verde':           '🌿'
+    'Isla verde':        '🌿'
   };
 
   var tituloAreas = document.createElement('div');
   tituloAreas.className = 'areas-titulo';
-  tituloAreas.innerHTML = '<span class="num" style="background:var(--amarillo);color:var(--gris-texto);font-size:10px;font-weight:800;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-right:7px;">3</span>Evaluación de áreas';
+  tituloAreas.innerHTML = '<span class="num" style="background:var(--amarillo);color:var(--azul-oscuro);font-size:10px;font-weight:800;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-right:7px;">5</span>Evaluación de áreas';
   document.getElementById('bloque-areas').appendChild(tituloAreas);
 
   areas.forEach(function(area) {
@@ -937,7 +1090,7 @@ function alCambiarEspacio() {
     card.innerHTML =
       '<div class="area-header" onclick="toggleArea(\'' + area.id + '\')">' +
         '<span class="area-icono">' + icono + '</span>' +
-        '<span class="area-nombre">' + area.nombre + '</span>' +
+        '<span class="area-nombre">' + nombreCompletoArea(area) + '</span>' +
         '<span class="area-chevron">▾</span>' +
       '</div>' +
       '<div class="area-body">' + crearEvaluaciones(area.id) + '</div>';
@@ -945,21 +1098,27 @@ function alCambiarEspacio() {
   });
 }
 
-// ── EVALUACIONES ────────────────────────────────────────────
+// ── EVALUACIONES DE ÁREA ────────────────────────────────────
 function crearEvaluaciones(areaId) {
-  var items = ['Limpieza', 'Luminaria', 'Equipamiento', 'Jardinería', 'Vereda'];
-  var html  = '';
+  var items = [
+    { label: 'Limpieza',     clave: 'limpieza' },
+    { label: 'Luminaria',    clave: 'luminaria' },
+    { label: 'Equipamiento', clave: 'equipamiento' },
+    { label: 'Jardinería',   clave: 'jardineria' },
+    { label: 'Vereda',       clave: 'vereda' }
+  ];
+  var html = '';
   items.forEach(function(item) {
-    var slug = item.toLowerCase().replace(/[áéíóúñ]/g, function(c) {
-      return {á:'a',é:'e',í:'i',ó:'o',ú:'u',ñ:'n'}[c];
-    });
     html +=
       '<div class="eval-fila">' +
-        '<span class="eval-label">' + item + '</span>' +
+        '<div class="eval-label-linea">' +
+          '<span class="eval-label">' + item.label + '</span>' +
+          '<button class="btn-ayuda" onclick="abrirAyuda(\'' + item.clave + '\')" title="Ver criterios">?</button>' +
+        '</div>' +
         '<div class="pill-grupo">' +
-          '<div class="pill" onclick="selPill(this,\'' + areaId + '\',\'' + slug + '\',\'bien\')">Bien</div>' +
-          '<div class="pill" onclick="selPill(this,\'' + areaId + '\',\'' + slug + '\',\'regular\')">Regular</div>' +
-          '<div class="pill" onclick="selPill(this,\'' + areaId + '\',\'' + slug + '\',\'mal\')">Mal</div>' +
+          '<div class="pill" onclick="selPill(this,\'' + areaId + '\',\'bien\')">Bien</div>' +
+          '<div class="pill" onclick="selPill(this,\'' + areaId + '\',\'regular\')">Regular</div>' +
+          '<div class="pill" onclick="selPill(this,\'' + areaId + '\',\'mal\')">Mal</div>' +
         '</div>' +
       '</div>';
   });
@@ -978,10 +1137,32 @@ function crearEvaluaciones(areaId) {
 }
 
 // ── PILLS ────────────────────────────────────────────────────
-function selPill(pill, areaId, item, valor) {
+function selPill(pill, areaId, valor) {
   pill.parentElement.querySelectorAll('.pill').forEach(function(p) { p.className = 'pill'; });
   pill.classList.add('sel-' + valor);
   actualizarFotoZona(areaId);
+}
+
+// Pills que no pertenecen a un área (cooperativa y espacio)
+function selPillSimple(pill, valor) {
+  pill.parentElement.querySelectorAll('.pill').forEach(function(p) { p.className = 'pill'; });
+  pill.classList.add('sel-' + valor);
+}
+
+function limpiarPillGrupo(grupoId) {
+  var g = document.getElementById(grupoId);
+  if (g) g.querySelectorAll('.pill').forEach(function(p) { p.className = 'pill'; });
+}
+
+function getValorGrupo(grupoId) {
+  var g = document.getElementById(grupoId);
+  if (!g) return '';
+  var sel = g.querySelector('.pill.sel-bien, .pill.sel-regular, .pill.sel-mal');
+  if (!sel) return '';
+  if (sel.classList.contains('sel-bien'))    return 'Bien';
+  if (sel.classList.contains('sel-regular')) return 'Regular';
+  if (sel.classList.contains('sel-mal'))     return 'Mal';
+  return '';
 }
 
 function actualizarFotoZona(areaId) {
@@ -990,9 +1171,6 @@ function actualizarFotoZona(areaId) {
 }
 
 // ── COMPRESIÓN DE FOTO ───────────────────────────────────────
-// Reduce la foto a máx. 1280px de lado y calidad 70% antes de
-// subirla: una foto de ~3 MB queda en ~200-400 KB sin perder
-// legibilidad para uso administrativo.
 function comprimirImagen(archivo) {
   return new Promise(function(resolve, reject) {
     var reader = new FileReader();
@@ -1018,7 +1196,6 @@ function comprimirImagen(archivo) {
   });
 }
 
-// ── FOTO ─────────────────────────────────────────────────────
 function previsualizarFoto(input, areaId) {
   if (!input.files || !input.files[0]) return;
   comprimirImagen(input.files[0])
@@ -1038,12 +1215,12 @@ function toggleArea(areaId) {
 // ── INFO SITIO ───────────────────────────────────────────────
 function mostrarInfoSitio(sitio) {
   var filas = [
-    ['Comuna',        sitio.comuna],
-    ['Superficie',    sitio.superficie],
-    ['Última visita', sitio.ultimaVisita || 'Sin visitas registradas'],
-    ['Cooperativa',   sitio.cooperativa],
-    ['Referente territorial',     sitio.referente],
-    ['Contacto',      sitio.contacto]
+    ['Comuna',                sitio.comuna],
+    ['Superficie',            sitio.superficie],
+    ['Última visita',         sitio.ultimaVisita || 'Sin visitas registradas'],
+    ['Cooperativa',           sitio.cooperativa],
+    ['Referente territorial', sitio.referenteTerritorial],
+    ['Contacto',              sitio.contacto]
   ];
   document.getElementById('info-sitio-contenido').innerHTML = filas.map(function(f) {
     return '<div class="info-sitio-fila"><span class="clave">' + f[0] +
@@ -1052,12 +1229,28 @@ function mostrarInfoSitio(sitio) {
   document.getElementById('bloque-info-sitio').style.display = 'block';
 }
 
-// ── PILLS VALOR ──────────────────────────────────────────────
+// ── INFO ESPACIO ─────────────────────────────────────────────
+function mostrarInfoEspacio(espacio) {
+  var filas = [
+    ['Dirección',                  espacio.direccion],
+    ['Superficie de mantenimiento', espacio.superficieMant],
+    ['Información adicional',      espacio.infoAdicional]
+  ];
+  document.getElementById('info-espacio-contenido').innerHTML = filas.map(function(f) {
+    return '<div class="info-sitio-fila"><span class="clave">' + f[0] +
+           '</span><span class="valor">' + (f[1] || '—') + '</span></div>';
+  }).join('');
+  document.getElementById('bloque-info-espacio').style.display = 'block';
+}
+
+// ── PILLS VALOR (áreas) ──────────────────────────────────────
 function getValorPill(areaId, item) {
   var items = ['limpieza','luminaria','equipamiento','jardineria','vereda'];
   var idx   = items.indexOf(item);
   if (idx < 0) return '';
-  var fila  = document.getElementById('area-card-' + areaId).querySelectorAll('.eval-fila')[idx];
+  var card = document.getElementById('area-card-' + areaId);
+  if (!card) return '';
+  var fila = card.querySelectorAll('.eval-fila')[idx];
   if (!fila) return '';
   var sel = fila.querySelector('.pill.sel-bien, .pill.sel-regular, .pill.sel-mal');
   if (!sel) return '';
@@ -1083,15 +1276,24 @@ function enviarRelevamiento() {
   if (!sitioId)   { mostrarMsg('Seleccioná un sitio.', false); return; }
   if (!espacioId) { mostrarMsg('Seleccioná un espacio.', false); return; }
 
+  // Evaluación del espacio (obligatoria)
+  var espLimpieza   = getValorGrupo('pg-esp-limpieza');
+  var espJardineria = getValorGrupo('pg-esp-jardineria');
+  if (!espLimpieza || !espJardineria) {
+    mostrarMsg('Completá la evaluación del espacio (limpieza y jardinería) antes de enviar.', false);
+    document.getElementById('seccion-espacio-eval').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+
   var sitio   = DB.sitios.find(function(s)   { return String(s.id) === String(sitioId); });
   var espacio = DB.espacios.find(function(e) { return String(e.id) === String(espacioId); });
   var areas   = DB.areas.filter(function(a)  { return String(a.espacioId) === String(espacioId); });
 
-  if (areas.length === 0) { mostrarMsg('Este espacio no tiene áreas cargadas.', false); return; }
+  if (areas.length === 0) { mostrarMsg('Este espacio no tiene áreas activas cargadas.', false); return; }
 
   // Validación: si un área tiene algún ítem en "Mal", la foto es obligatoria
   for (var v = 0; v < areas.length; v++) {
-    var aId    = areas[v].id;
+    var aId = areas[v].id;
     var valores = [
       getValorPill(aId, 'limpieza'),
       getValorPill(aId, 'luminaria'),
@@ -1100,26 +1302,28 @@ function enviarRelevamiento() {
       getValorPill(aId, 'vereda')
     ];
     if (valores.indexOf('Mal') !== -1 && !getFotoBase64(aId)) {
-      mostrarMsg('📷 El área "' + areas[v].nombre + '" tiene ítems en mal estado. Adjuntá una foto antes de enviar.', false);
-      // Abrir la tarjeta del área para que vea dónde falta la foto
+      mostrarMsg('📷 El área "' + nombreCompletoArea(areas[v]) + '" tiene ítems en mal estado. Adjuntá una foto antes de enviar.', false);
       document.getElementById('area-card-' + aId).classList.add('abierta');
       return;
     }
   }
 
   var payload = {
-    relevador:     relevador,
-    fechaHora:     fechaHora,
-    latitud:       gpsLat  || 'No disponible',
-    longitud:      gpsLon  || 'No disponible',
-    sitioId:       sitioId,
-    sitioNombre:   sitio   ? sitio.nombre   : '',
-    espacioId:     espacioId,
-    espacioNombre: espacio ? espacio.nombre : '',
+    relevador:            relevador,
+    fechaHora:            fechaHora,
+    latitud:              gpsLat  || 'No disponible',
+    longitud:             gpsLon  || 'No disponible',
+    sitioId:              sitioId,
+    sitioNombre:          sitio   ? sitio.nombre   : '',
+    espacioId:            espacioId,
+    espacioNombre:        espacio ? espacio.nombre : '',
+    seguridadCooperativa: getValorGrupo('pg-coop-seguridad'),
+    espLimpieza:          espLimpieza,
+    espJardineria:        espJardineria,
     areas: areas.map(function(area) {
       return {
         id:           area.id,
-        nombre:       area.nombre,
+        nombre:       nombreCompletoArea(area),
         limpieza:     getValorPill(area.id, 'limpieza'),
         luminaria:    getValorPill(area.id, 'luminaria'),
         equipamiento: getValorPill(area.id, 'equipamiento'),
@@ -1171,10 +1375,8 @@ function resetFormulario() {
   document.getElementById('sel-relevador').value = '';
   document.getElementById('sel-sitio').value     = '';
   document.getElementById('sel-espacio').innerHTML = '<option value="">— Seleccioná el espacio —</option>';
-  document.getElementById('bloque-espacio').style.display      = 'none';
-  document.getElementById('bloque-info-sitio').style.display   = 'none';
-  document.getElementById('bloque-geo').style.display          = 'none';
-  document.getElementById('bloque-areas').innerHTML = '';
+  ocultarBloquesDependientes();
+  document.getElementById('bloque-info-sitio').style.display = 'none';
   capturarFechaHora();
   capturarGPS();
 }
@@ -1197,9 +1399,9 @@ function enviarReporte() {
   btn.textContent = 'Enviando...';
 
   var payload = {
-    fechaHora:     fechaHora,
-    relevador:     document.getElementById('sel-relevador').value || 'No indicado',
-    sitioNombre:   (function() {
+    fechaHora: fechaHora,
+    relevador: document.getElementById('sel-relevador').value || 'No indicado',
+    sitioNombre: (function() {
       var s = document.getElementById('sel-sitio');
       return s.value ? s.options[s.selectedIndex].text : '';
     })(),
