@@ -278,7 +278,11 @@
     padding: 0;
   }
   .btn-ayuda:active { background: var(--amarillo); }
-  .pill-grupo { display: flex; gap: 6px; }
+  .pill-grupo { display: flex; gap: 6px; border-radius: var(--radio); }
+  .pill-grupo.falta-eval {
+    outline: 2px solid var(--mal-borde);
+    outline-offset: 3px;
+  }
   .pill {
     flex: 1; text-align: center;
     font-size: 14px; font-weight: 700;
@@ -294,29 +298,54 @@
   .pill.sel-regular { background: var(--reg-bg);  color: var(--reg-txt);  border-color: var(--reg-borde); }
   .pill.sel-mal     { background: var(--mal-bg);  color: var(--mal-txt);  border-color: var(--mal-borde); }
 
-  /* ── FOTO ── */
-  .foto-zona {
-    display: none; margin-top: 12px;
-    border: 2px dashed var(--mal-borde);
+  /* ── DETALLE POR EVALUACIÓN (notas + foto) ── */
+  .eval-detalle {
+    display: none;
+    margin-top: 8px;
+    padding: 10px;
+    background: var(--blanco);
+    border: 1px solid var(--gris-borde);
+    border-left: 3px solid var(--gris-borde);
     border-radius: var(--radio);
-    padding: 12px; background: var(--mal-bg);
   }
+  .eval-detalle.visible { display: block; }
+  .eval-detalle.nivel-regular { border-left-color: var(--reg-borde); }
+  .eval-detalle.nivel-mal     { border-left-color: var(--mal-borde); }
+  .eval-detalle .mini-label {
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .05em;
+    color: var(--gris-muted);
+    display: block; margin-bottom: 4px;
+  }
+  .eval-detalle .mini-label .aclara {
+    font-weight: 600; text-transform: none; letter-spacing: 0;
+    color: var(--gris-muted); opacity: .75;
+  }
+  .eval-detalle textarea { font-size: 14px; padding: 8px 10px; }
+
+  /* ── FOTO (opcional, por evaluación) ── */
+  .foto-zona { display: none; margin-top: 10px; }
   .foto-zona.visible { display: block; }
-  .foto-zona p { font-size: 12px; font-weight: 700; color: var(--mal-txt); margin-bottom: 8px; }
   .foto-zona input[type=file] { display: none; }
   .foto-btn-label {
     display: inline-flex; align-items: center; gap: 6px;
     font-size: 13px; font-weight: 700; font-family: var(--font);
-    color: var(--mal-txt); background: var(--blanco);
-    border: 1.5px solid var(--mal-borde);
+    color: var(--azul-oscuro); background: var(--blanco);
+    border: 1.5px dashed var(--gris-borde);
     border-radius: var(--radio);
-    padding: 8px 14px; cursor: pointer;
+    padding: 9px 14px; cursor: pointer;
   }
-  .foto-preview { margin-top: 8px; border-radius: var(--radio); overflow: hidden; display: none; }
-  .foto-preview img { width: 100%; max-height: 160px; object-fit: cover; display: block; }
+  .foto-btn-label:active { background: var(--gris-bg); }
+  .foto-preview { margin-top: 8px; border-radius: var(--radio); overflow: hidden; display: none; position: relative; }
+  .foto-preview img { width: 100%; max-height: 150px; object-fit: cover; display: block; }
+  .foto-quitar {
+    position: absolute; top: 6px; right: 6px;
+    width: 26px; height: 26px; border-radius: 50%;
+    border: none; background: rgba(29,51,67,.75); color: #fff;
+    font-size: 13px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
 
-  /* ── NOTAS ── */
-  .notas-area { margin-top: 14px; border-top: 1px solid var(--gris-borde); padding-top: 14px; }
   textarea { resize: none; line-height: 1.5; }
 
   /* ── MAPA ── */
@@ -605,60 +634,23 @@
   </div>
 </div>
 
-<!-- SECCIÓN 3: COOPERATIVA (OPCIONAL) -->
+<!-- SECCIÓN 4: COOPERATIVA (COMPLETAR SOLO SI APLICA) -->
 <div class="seccion" id="seccion-cooperativa" style="display:none">
   <div class="seccion-titulo">
     <span class="num">4</span> Cooperativa
-    <span class="opcional">Opcional</span>
+    <span class="opcional">Completar solo si aplica</span>
   </div>
-  <div class="seccion-cuerpo">
-    <div class="eval-fila">
-      <div class="eval-label-linea">
-        <span class="eval-label">Elementos de seguridad y vestimenta</span>
-        <button class="btn-ayuda" onclick="abrirAyuda('coopSeguridad')" title="Ver criterios">?</button>
-      </div>
-      <div class="pill-grupo" id="pg-coop-seguridad">
-        <div class="pill" onclick="selPillSimple(this,'bien')">Bien</div>
-        <div class="pill" onclick="selPillSimple(this,'regular')">Regular</div>
-        <div class="pill" onclick="selPillSimple(this,'mal')">Mal</div>
-      </div>
-    </div>
-  </div>
+  <div class="seccion-cuerpo" id="cuerpo-cooperativa"></div>
 </div>
 
-<!-- SECCIÓN 4: EVALUACIÓN DEL ESPACIO -->
+<!-- SECCIÓN 5: EVALUACIÓN DEL ESPACIO -->
 <div class="seccion" id="seccion-espacio-eval" style="display:none">
   <div class="seccion-titulo"><span class="num">5</span> Evaluación del espacio</div>
-  <div class="seccion-cuerpo">
-
-    <div class="eval-fila">
-      <div class="eval-label-linea">
-        <span class="eval-label">Limpieza (barrido, cestos y bolsas)</span>
-        <button class="btn-ayuda" onclick="abrirAyuda('espLimpieza')" title="Ver criterios">?</button>
-      </div>
-      <div class="pill-grupo" id="pg-esp-limpieza">
-        <div class="pill" onclick="selPillSimple(this,'bien')">Bien</div>
-        <div class="pill" onclick="selPillSimple(this,'regular')">Regular</div>
-        <div class="pill" onclick="selPillSimple(this,'mal')">Mal</div>
-      </div>
-    </div>
-
-    <div class="eval-fila">
-      <div class="eval-label-linea">
-        <span class="eval-label">Césped y jardinería</span>
-        <button class="btn-ayuda" onclick="abrirAyuda('espJardineria')" title="Ver criterios">?</button>
-      </div>
-      <div class="pill-grupo" id="pg-esp-jardineria">
-        <div class="pill" onclick="selPillSimple(this,'bien')">Bien</div>
-        <div class="pill" onclick="selPillSimple(this,'regular')">Regular</div>
-        <div class="pill" onclick="selPillSimple(this,'mal')">Mal</div>
-      </div>
-    </div>
-
-  </div>
+  <div class="seccion-cuerpo" id="cuerpo-espacio-eval"></div>
 </div>
 
-<!-- SECCIÓN 5: ÁREAS (generadas dinámicamente) -->
+<!-- SECCIÓN 6: ÁREAS (generadas dinámicamente) -->
+
 <div id="bloque-areas"></div>
 
 <!-- MENSAJE -->
@@ -1114,14 +1106,13 @@ function alCambiarSitio() {
 
 function ocultarBloquesDependientes() {
   document.getElementById('bloque-areas').innerHTML = '';
+  document.getElementById('cuerpo-cooperativa').innerHTML  = '';
+  document.getElementById('cuerpo-espacio-eval').innerHTML = '';
   document.getElementById('seccion-espacio').style.display       = 'none';
   document.getElementById('bloque-geo').style.display            = 'none';
   document.getElementById('bloque-info-espacio').style.display   = 'none';
   document.getElementById('seccion-cooperativa').style.display   = 'none';
   document.getElementById('seccion-espacio-eval').style.display  = 'none';
-  limpiarPillGrupo('pg-coop-seguridad');
-  limpiarPillGrupo('pg-esp-limpieza');
-  limpiarPillGrupo('pg-esp-jardineria');
 }
 
 // ── CAMBIO DE ESPACIO ────────────────────────────────────────
@@ -1144,14 +1135,22 @@ function alCambiarEspacio() {
     document.getElementById('bloque-geo').style.display = 'block';
   }
 
-  // Datos del espacio (dirección, superficie de mantenimiento, info adicional)
+  // Datos del espacio
   if (espacio) mostrarInfoEspacio(espacio);
 
-  // Secciones de evaluación previa
-  document.getElementById('seccion-cooperativa').style.display  = 'block';
+  // ── Sección 4: cooperativa (una sola evaluación, opcional)
+  document.getElementById('cuerpo-cooperativa').innerHTML =
+    crearEvaluacion('coop-' + ITEM_COOP.id, ITEM_COOP);
+  document.getElementById('seccion-cooperativa').style.display = 'block';
+
+  // ── Sección 5: evaluación del espacio
+  document.getElementById('cuerpo-espacio-eval').innerHTML =
+    ITEMS_ESPACIO.map(function(item) {
+      return crearEvaluacion('esp-' + item.id, item);
+    }).join('');
   document.getElementById('seccion-espacio-eval').style.display = 'block';
 
-  // Áreas
+  // ── Sección 6: áreas
   var areas = DB.areas.filter(function(a) { return String(a.espacioId) === String(espacioId); });
   var iconos = {
     'Posta deportiva':   '🏋️',
@@ -1163,97 +1162,136 @@ function alCambiarEspacio() {
     'Isla verde':        '🌿'
   };
 
+  var cont = document.getElementById('bloque-areas');
   var tituloAreas = document.createElement('div');
   tituloAreas.className = 'areas-titulo';
   tituloAreas.innerHTML = '<span class="num" style="background:var(--amarillo);color:var(--azul-oscuro);font-size:10px;font-weight:800;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-right:7px;">6</span>Evaluación de áreas';
-  document.getElementById('bloque-areas').appendChild(tituloAreas);
+  cont.appendChild(tituloAreas);
 
   areas.forEach(function(area) {
     var icono = iconos[area.nombre] || '📌';
     var card  = document.createElement('div');
     card.className = 'area-card';
     card.id = 'area-card-' + area.id;
+    var cuerpo = ITEMS_AREA.map(function(item) {
+      return crearEvaluacion('ar-' + area.id + '-' + item.id, item);
+    }).join('');
     card.innerHTML =
       '<div class="area-header" onclick="toggleArea(\'' + area.id + '\')">' +
         '<span class="area-icono">' + icono + '</span>' +
         '<span class="area-nombre">' + nombreCompletoArea(area) + '</span>' +
         '<span class="area-chevron">▾</span>' +
       '</div>' +
-      '<div class="area-body">' + crearEvaluaciones(area.id) + '</div>';
-    document.getElementById('bloque-areas').appendChild(card);
+      '<div class="area-body">' + cuerpo + '</div>';
+    cont.appendChild(card);
   });
 }
 
-// ── EVALUACIONES DE ÁREA ────────────────────────────────────
-function crearEvaluaciones(areaId) {
-  var items = [
-    { label: 'Limpieza',     clave: 'limpieza' },
-    { label: 'Luminaria',    clave: 'luminaria' },
-    { label: 'Equipamiento', clave: 'equipamiento' },
-    { label: 'Jardinería',   clave: 'jardineria' },
-    { label: 'Vereda',       clave: 'vereda' }
-  ];
-  var html = '';
-  items.forEach(function(item) {
-    html +=
-      '<div class="eval-fila">' +
-        '<div class="eval-label-linea">' +
-          '<span class="eval-label">' + item.label + '</span>' +
-          '<button class="btn-ayuda" onclick="abrirAyuda(\'' + item.clave + '\')" title="Ver criterios">?</button>' +
+// ════════════════════════════════════════════════════════════
+//  SISTEMA DE EVALUACIONES
+//  Cada evaluación (cooperativa, espacio y áreas) tiene:
+//    · pills Bien / Regular / Mal
+//    · notas propias  → aparecen si es Regular o Mal
+//    · foto propia    → aparece si es Mal (siempre opcional)
+// ════════════════════════════════════════════════════════════
+
+// Ítems de cada nivel. La "clave" enlaza con los textos de AYUDAS.
+var ITEMS_ESPACIO = [
+  { id: 'espLimpieza',   label: 'Limpieza (barrido, cestos y bolsas)', clave: 'espLimpieza' },
+  { id: 'espJardineria', label: 'Césped y jardinería',                 clave: 'espJardineria' }
+];
+var ITEMS_AREA = [
+  { id: 'limpieza',     label: 'Limpieza',     clave: 'limpieza' },
+  { id: 'luminaria',    label: 'Luminaria',    clave: 'luminaria' },
+  { id: 'equipamiento', label: 'Equipamiento', clave: 'equipamiento' },
+  { id: 'jardineria',   label: 'Jardinería',   clave: 'jardineria' },
+  { id: 'vereda',       label: 'Vereda',       clave: 'vereda' }
+];
+var ITEM_COOP = { id: 'coopSeguridad', label: 'Elementos de seguridad y vestimenta', clave: 'coopSeguridad' };
+
+// Construye el HTML de UNA evaluación. evalId debe ser único.
+function crearEvaluacion(evalId, item) {
+  return '' +
+    '<div class="eval-fila">' +
+      '<div class="eval-label-linea">' +
+        '<span class="eval-label">' + item.label + '</span>' +
+        '<button class="btn-ayuda" onclick="abrirAyuda(\'' + item.clave + '\')" title="Ver criterios">?</button>' +
+      '</div>' +
+      '<div class="pill-grupo" id="pg-' + evalId + '">' +
+        '<div class="pill" onclick="selPill(this,\'' + evalId + '\',\'bien\')">Bien</div>' +
+        '<div class="pill" onclick="selPill(this,\'' + evalId + '\',\'regular\')">Regular</div>' +
+        '<div class="pill" onclick="selPill(this,\'' + evalId + '\',\'mal\')">Mal</div>' +
+      '</div>' +
+      '<div class="eval-detalle" id="det-' + evalId + '">' +
+        '<label class="mini-label">Notas <span class="aclara">(opcional)</span></label>' +
+        '<textarea id="notas-' + evalId + '" rows="2" placeholder="Detallá lo observado..."></textarea>' +
+        '<div class="foto-zona" id="fz-' + evalId + '">' +
+          '<label class="foto-btn-label" for="file-' + evalId + '">📸 Adjuntar foto (opcional)</label>' +
+          '<input type="file" id="file-' + evalId + '" accept="image/*" capture="environment" onchange="previsualizarFoto(this,\'' + evalId + '\')">' +
+          '<div class="foto-preview" id="prev-' + evalId + '">' +
+            '<img id="img-' + evalId + '" src="" alt="foto">' +
+            '<button class="foto-quitar" onclick="quitarFoto(\'' + evalId + '\')" title="Quitar foto">✕</button>' +
+          '</div>' +
         '</div>' +
-        '<div class="pill-grupo">' +
-          '<div class="pill" onclick="selPill(this,\'' + areaId + '\',\'bien\')">Bien</div>' +
-          '<div class="pill" onclick="selPill(this,\'' + areaId + '\',\'regular\')">Regular</div>' +
-          '<div class="pill" onclick="selPill(this,\'' + areaId + '\',\'mal\')">Mal</div>' +
-        '</div>' +
-      '</div>';
-  });
-  html +=
-    '<div class="foto-zona" id="foto-' + areaId + '">' +
-      '<p>📷 Se requiere foto del estado</p>' +
-      '<label class="foto-btn-label" for="file-' + areaId + '">📸 Tomar / adjuntar foto</label>' +
-      '<input type="file" id="file-' + areaId + '" accept="image/*" capture="environment" onchange="previsualizarFoto(this,\'' + areaId + '\')">' +
-      '<div class="foto-preview" id="prev-' + areaId + '"><img id="img-' + areaId + '" src="" alt="foto"></div>' +
-    '</div>' +
-    '<div class="notas-area">' +
-      '<label class="eval-label">Notas</label>' +
-      '<textarea id="notas-' + areaId + '" rows="3" placeholder="Observaciones del área..."></textarea>' +
+      '</div>' +
     '</div>';
-  return html;
 }
 
-// ── PILLS ────────────────────────────────────────────────────
-function selPill(pill, areaId, valor) {
+// ── SELECCIÓN DE PILL ────────────────────────────────────────
+function selPill(pill, evalId, valor) {
   pill.parentElement.querySelectorAll('.pill').forEach(function(p) { p.className = 'pill'; });
   pill.classList.add('sel-' + valor);
-  actualizarFotoZona(areaId);
+
+  var det = document.getElementById('det-' + evalId);
+  var fz  = document.getElementById('fz-' + evalId);
+  if (!det) return;
+
+  // Notas visibles en Regular y Mal; foto solo en Mal
+  det.classList.remove('nivel-regular', 'nivel-mal');
+  if (valor === 'regular' || valor === 'mal') {
+    det.classList.add('visible', 'nivel-' + valor);
+    if (fz) fz.classList.toggle('visible', valor === 'mal');
+  } else {
+    det.classList.remove('visible');
+    if (fz) fz.classList.remove('visible');
+  }
+  // Sacar el resaltado de "falta completar" si lo tenía
+  var pg = document.getElementById('pg-' + evalId);
+  if (pg) pg.classList.remove('falta-eval');
 }
 
-// Pills que no pertenecen a un área (cooperativa y espacio)
-function selPillSimple(pill, valor) {
-  pill.parentElement.querySelectorAll('.pill').forEach(function(p) { p.className = 'pill'; });
-  pill.classList.add('sel-' + valor);
-}
-
-function limpiarPillGrupo(grupoId) {
-  var g = document.getElementById(grupoId);
-  if (g) g.querySelectorAll('.pill').forEach(function(p) { p.className = 'pill'; });
-}
-
-function getValorGrupo(grupoId) {
-  var g = document.getElementById(grupoId);
+function getEstado(evalId) {
+  var g = document.getElementById('pg-' + evalId);
   if (!g) return '';
   var sel = g.querySelector('.pill.sel-bien, .pill.sel-regular, .pill.sel-mal');
   if (!sel) return '';
   if (sel.classList.contains('sel-bien'))    return 'Bien';
   if (sel.classList.contains('sel-regular')) return 'Regular';
-  if (sel.classList.contains('sel-mal'))     return 'Mal';
-  return '';
+  return 'Mal';
 }
 
-function actualizarFotoZona(areaId) {
-  var hayMal = document.getElementById('area-card-' + areaId).querySelectorAll('.pill.sel-mal').length > 0;
-  document.getElementById('foto-' + areaId).classList.toggle('visible', hayMal);
+function getNotas(evalId) {
+  var t = document.getElementById('notas-' + evalId);
+  return t ? t.value.trim() : '';
+}
+
+function getFoto(evalId) {
+  var img = document.getElementById('img-' + evalId);
+  if (!img || !img.src || img.src.indexOf('data:') !== 0) return '';
+  return img.src;
+}
+
+function quitarFoto(evalId) {
+  var img   = document.getElementById('img-' + evalId);
+  var prev  = document.getElementById('prev-' + evalId);
+  var input = document.getElementById('file-' + evalId);
+  if (img) img.src = '';
+  if (prev) prev.style.display = 'none';
+  if (input) input.value = '';
+}
+
+function toggleArea(areaId) {
+  document.getElementById('area-card-' + areaId).classList.toggle('abierta');
 }
 
 // ── COMPRESIÓN DE FOTO ───────────────────────────────────────
@@ -1339,29 +1377,6 @@ function mostrarInfoEspacio(espacio) {
   document.getElementById('bloque-info-espacio').style.display = 'block';
 }
 
-// ── PILLS VALOR (áreas) ──────────────────────────────────────
-function getValorPill(areaId, item) {
-  var items = ['limpieza','luminaria','equipamiento','jardineria','vereda'];
-  var idx   = items.indexOf(item);
-  if (idx < 0) return '';
-  var card = document.getElementById('area-card-' + areaId);
-  if (!card) return '';
-  var fila = card.querySelectorAll('.eval-fila')[idx];
-  if (!fila) return '';
-  var sel = fila.querySelector('.pill.sel-bien, .pill.sel-regular, .pill.sel-mal');
-  if (!sel) return '';
-  if (sel.classList.contains('sel-bien'))    return 'Bien';
-  if (sel.classList.contains('sel-regular')) return 'Regular';
-  if (sel.classList.contains('sel-mal'))     return 'Mal';
-  return '';
-}
-
-function getFotoBase64(areaId) {
-  var img = document.getElementById('img-' + areaId);
-  if (!img || !img.src || img.src.indexOf('data:') !== 0) return '';
-  return img.src;
-}
-
 // ── ENVIAR ───────────────────────────────────────────────────
 function enviarRelevamiento() {
   var relevador = document.getElementById('sel-relevador').value;
@@ -1378,36 +1393,79 @@ function enviarRelevamiento() {
   if (!sitioId)   { mostrarMsg('Seleccioná un sitio.', false); return; }
   if (!espacioId) { mostrarMsg('Seleccioná un espacio.', false); return; }
 
-  // Evaluación del espacio (obligatoria)
-  var espLimpieza   = getValorGrupo('pg-esp-limpieza');
-  var espJardineria = getValorGrupo('pg-esp-jardineria');
-  if (!espLimpieza || !espJardineria) {
-    mostrarMsg('Completá la evaluación del espacio (limpieza y jardinería) antes de enviar.', false);
-    document.getElementById('seccion-espacio-eval').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    return;
-  }
-
   var sitio   = DB.sitios.find(function(s)   { return String(s.id) === String(sitioId); });
   var espacio = DB.espacios.find(function(e) { return String(e.id) === String(espacioId); });
   var areas   = DB.areas.filter(function(a)  { return String(a.espacioId) === String(espacioId); });
 
   if (areas.length === 0) { mostrarMsg('Este espacio no tiene áreas activas cargadas.', false); return; }
 
-  // Validación: si un área tiene algún ítem en "Mal", la foto es obligatoria
-  for (var v = 0; v < areas.length; v++) {
-    var aId = areas[v].id;
-    var valores = [
-      getValorPill(aId, 'limpieza'),
-      getValorPill(aId, 'luminaria'),
-      getValorPill(aId, 'equipamiento'),
-      getValorPill(aId, 'jardineria'),
-      getValorPill(aId, 'vereda')
-    ];
-    if (valores.indexOf('Mal') !== -1 && !getFotoBase64(aId)) {
-      mostrarMsg('📷 El área "' + nombreCompletoArea(areas[v]) + '" tiene ítems en mal estado. Adjuntá una foto antes de enviar.', false);
-      document.getElementById('area-card-' + aId).classList.add('abierta');
+  limpiarResaltadosFaltantes();
+  var evaluaciones = [];
+  var faltantes    = [];
+
+  // ── Cooperativa (OPCIONAL: solo se envía si la completaron)
+  var coopEvalId = 'coop-' + ITEM_COOP.id;
+  var coopEstado = getEstado(coopEvalId);
+  if (coopEstado) {
+    evaluaciones.push({
+      nivel: 'Cooperativa', areaId: '', areaNombre: '',
+      item: ITEM_COOP.label, estado: coopEstado,
+      notas: getNotas(coopEvalId), fotoBase64: getFoto(coopEvalId)
+    });
+  }
+
+  // ── Espacio (OBLIGATORIAS)
+  ITEMS_ESPACIO.forEach(function(item) {
+    var evalId = 'esp-' + item.id;
+    var estado = getEstado(evalId);
+    if (!estado) {
+      faltantes.push({ evalId: evalId, texto: 'Espacio → ' + item.label });
       return;
     }
+    evaluaciones.push({
+      nivel: 'Espacio', areaId: '', areaNombre: '',
+      item: item.label, estado: estado,
+      notas: getNotas(evalId), fotoBase64: getFoto(evalId)
+    });
+  });
+
+  // ── Áreas (OBLIGATORIAS)
+  areas.forEach(function(area) {
+    ITEMS_AREA.forEach(function(item) {
+      var evalId = 'ar-' + area.id + '-' + item.id;
+      var estado = getEstado(evalId);
+      if (!estado) {
+        faltantes.push({
+          evalId: evalId,
+          texto: nombreCompletoArea(area) + ' → ' + item.label,
+          areaId: area.id
+        });
+        return;
+      }
+      evaluaciones.push({
+        nivel: 'Área', areaId: area.id, areaNombre: nombreCompletoArea(area),
+        item: item.label, estado: estado,
+        notas: getNotas(evalId), fotoBase64: getFoto(evalId)
+      });
+    });
+  });
+
+  // ── Si falta completar algo, avisar y llevar al primero
+  if (faltantes.length > 0) {
+    faltantes.forEach(function(f) {
+      var pg = document.getElementById('pg-' + f.evalId);
+      if (pg) pg.classList.add('falta-eval');
+      if (f.areaId) {
+        var card = document.getElementById('area-card-' + f.areaId);
+        if (card) card.classList.add('abierta');
+      }
+    });
+    var listado = faltantes.slice(0, 3).map(function(f) { return f.texto; }).join(' · ');
+    var extra   = faltantes.length > 3 ? ' y ' + (faltantes.length - 3) + ' más' : '';
+    mostrarMsg('Faltan ' + faltantes.length + ' evaluaciones por completar: ' + listado + extra, false);
+    var primero = document.getElementById('pg-' + faltantes[0].evalId);
+    if (primero) primero.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
   }
 
   var payload = {
@@ -1419,22 +1477,12 @@ function enviarRelevamiento() {
     sitioNombre:          sitio   ? sitio.nombre   : '',
     espacioId:            espacioId,
     espacioNombre:        espacio ? espacio.nombre : '',
-    seguridadCooperativa: getValorGrupo('pg-coop-seguridad'),
-    espLimpieza:          espLimpieza,
-    espJardineria:        espJardineria,
-    areas: areas.map(function(area) {
-      return {
-        id:           area.id,
-        nombre:       nombreCompletoArea(area),
-        limpieza:     getValorPill(area.id, 'limpieza'),
-        luminaria:    getValorPill(area.id, 'luminaria'),
-        equipamiento: getValorPill(area.id, 'equipamiento'),
-        jardineria:   getValorPill(area.id, 'jardineria'),
-        vereda:       getValorPill(area.id, 'vereda'),
-        notas:        (document.getElementById('notas-' + area.id) || {}).value || '',
-        fotoBase64:   getFotoBase64(area.id)
-      };
-    })
+    // Resumen que va en las columnas J, K y L de RELEVAMIENTOS
+    seguridadCooperativa: coopEstado,
+    espLimpieza:          getEstado('esp-espLimpieza'),
+    espJardineria:        getEstado('esp-espJardineria'),
+    // Una fila por evaluación en DETALLE_AREAS
+    evaluaciones:         evaluaciones
   };
 
   var btn = document.getElementById('btn-enviar');
@@ -1456,6 +1504,12 @@ function enviarRelevamiento() {
       }
     })
     .catch(function() { guardarYAvisar(payload, btn); });
+}
+
+function limpiarResaltadosFaltantes() {
+  document.querySelectorAll('.pill-grupo.falta-eval').forEach(function(g) {
+    g.classList.remove('falta-eval');
+  });
 }
 
 function guardarYAvisar(payload, btn) {
