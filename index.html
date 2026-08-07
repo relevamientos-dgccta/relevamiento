@@ -331,6 +331,70 @@
   }
   .eval-detalle textarea { font-size: 14px; padding: 8px 10px; }
 
+  /* ── OPCIONES MARCABLES ── */
+  .opciones { margin-bottom: 8px; }
+  .opcion {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 7px 8px; margin-bottom: 4px;
+    border: 1px solid var(--gris-borde);
+    border-radius: var(--radio);
+    background: var(--blanco);
+    cursor: pointer;
+    font-size: 13px; line-height: 1.35;
+  }
+  .opcion:last-child { margin-bottom: 0; }
+  .opcion input[type=checkbox] {
+    width: 17px; height: 17px; margin: 1px 0 0 0;
+    accent-color: var(--azul-oscuro);
+    flex-shrink: 0;
+  }
+  .opcion:has(input:checked) {
+    background: #EEF4F8;
+    border-color: var(--azul-oscuro);
+    font-weight: 600;
+  }
+  .otro-texto { display: none; margin-top: 6px; }
+  .otro-texto.visible { display: block; }
+
+  /* ── ÍTEM INFORMATIVO (luminaria / arbolado) ── */
+  .tag-informativo {
+    margin-left: auto;
+    font-size: 9px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .04em;
+    color: var(--gris-muted);
+    background: var(--gris-bg);
+    border: 1px solid var(--gris-borde);
+    border-radius: 20px; padding: 2px 7px;
+    white-space: nowrap;
+  }
+  .btn-reportar-problema {
+    width: 100%;
+    font-family: var(--font);
+    font-size: 13px; font-weight: 700;
+    color: var(--gris-muted);
+    background: var(--blanco);
+    border: 1.5px dashed var(--gris-borde);
+    border-radius: var(--radio);
+    padding: 10px; cursor: pointer;
+  }
+  .btn-reportar-problema.activo {
+    color: var(--mal-txt);
+    border-style: solid;
+    border-color: var(--mal-borde);
+    background: var(--mal-bg);
+  }
+  .ayuda-corta {
+    font-size: 12px; line-height: 1.45;
+    color: var(--gris-muted);
+    margin-bottom: 9px;
+  }
+
+  /* ── AVISO DE NOTA FALTANTE ── */
+  .eval-detalle.falta-nota {
+    outline: 2px solid var(--mal-borde);
+    outline-offset: 2px;
+  }
+
   /* ── FOTO (opcional, por evaluación) ── */
   .foto-zona { display: none; margin-top: 10px; }
   .foto-zona.visible { display: block; }
@@ -344,14 +408,24 @@
     padding: 9px 14px; cursor: pointer;
   }
   .foto-btn-label:active { background: var(--gris-bg); }
-  .foto-preview { margin-top: 8px; border-radius: var(--radio); overflow: hidden; display: none; position: relative; }
-  .foto-preview img { width: 100%; max-height: 150px; object-fit: cover; display: block; }
+  .fotos-grilla {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;
+  }
+  .foto-mini {
+    position: relative;
+    width: calc(33.333% - 4px);
+    border-radius: var(--radio);
+    overflow: hidden;
+    border: 1px solid var(--gris-borde);
+  }
+  .foto-mini img { width: 100%; height: 78px; object-fit: cover; display: block; }
   .foto-quitar {
-    position: absolute; top: 6px; right: 6px;
-    width: 26px; height: 26px; border-radius: 50%;
-    border: none; background: rgba(29,51,67,.75); color: #fff;
-    font-size: 13px; cursor: pointer;
+    position: absolute; top: 3px; right: 3px;
+    width: 22px; height: 22px; border-radius: 50%;
+    border: none; background: rgba(29,51,67,.8); color: #fff;
+    font-size: 11px; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
+    padding: 0;
   }
 
   textarea { resize: none; line-height: 1.5; }
@@ -556,9 +630,9 @@
   <div class="seccion-cuerpo">
 
     <div class="campo">
-      <label>Relevador <span class="req">*</span></label>
+      <label>Relevador</label>
       <div class="select-wrap">
-        <select id="sel-relevador" onchange="this.classList.remove('falta')">
+        <select id="sel-relevador" onchange="alCambiarRelevador()">
           <option value="">— Seleccioná tu nombre —</option>
         </select>
       </div>
@@ -686,7 +760,7 @@
 <!-- ✏️ SUBÍ ESTE NÚMERO CADA VEZ QUE ACTUALICES EL ARCHIVO.
      Sirve para saber desde el celular si estás viendo la versión
      nueva o una guardada en caché por el navegador. -->
-<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios &middot; v0.04</div>
+<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios &middot; v0.02</div>
 
 <!-- MODAL DE AYUDA -->
 <div class="modal-fondo" id="modal-ayuda" onclick="cerrarAyudaFondo(event)">
@@ -727,6 +801,18 @@ var AYUDAS = {
     bien:    'El espacio está barrido, los cestos tienen bolsa colocada y no están desbordados. No se observan residuos dispersos.',
     regular: 'Hay barrido parcial o residuos dispersos aislados, o algún cesto sin bolsa o cerca de su capacidad.',
     mal:     'Falta barrido general, hay acumulación de residuos, o los cestos están desbordados o sin bolsa.'
+  },
+  espLuminaria: {
+    titulo: 'Luminaria del espacio',
+    bien:    'No corresponde: este ítem no se puntúa.',
+    regular: 'No corresponde: este ítem no se puntúa.',
+    mal:     'Informalo solo si encontrás un problema (luminaria apagada, rota, faltante o con riesgo eléctrico). En las notas indicá cuál es el problema y en qué parte del espacio está, y sumá las fotos que hagan falta.'
+  },
+  espArbolado: {
+    titulo: 'Arbolado del espacio',
+    bien:    'No corresponde: este ítem no se puntúa.',
+    regular: 'No corresponde: este ítem no se puntúa.',
+    mal:     'Informalo solo si encontrás un problema (rama caída o en riesgo de caer, ejemplar seco o inclinado, raíces que levantan el solado). En las notas indicá cuál es el problema y en qué parte del espacio está, y sumá las fotos que hagan falta.'
   },
   espJardineria: {
     titulo: 'Césped y jardinería del espacio',
@@ -1075,8 +1161,41 @@ function capturarGPS() {
 function poblarRelevadores() {
   var sel = document.getElementById('sel-relevador');
   DB.relevadores.forEach(function(r) {
+    // Compatibilidad: si viene como texto suelto, se asume sin permiso
+    var nombre = (typeof r === 'string') ? r : r.nombre;
     var opt = document.createElement('option');
-    opt.value = r; opt.textContent = r; sel.appendChild(opt);
+    opt.value = nombre; opt.textContent = nombre;
+    sel.appendChild(opt);
+  });
+}
+
+// ── PERMISO DE GALERÍA POR RELEVADOR ─────────────────────────
+// Si en la columna B de RELEVADORES dice "habilitado", ese
+// relevador puede adjuntar fotos del carrete. Si no, el input
+// lleva el atributo capture y solo abre la cámara.
+var permiteGaleria = false;
+
+function alCambiarRelevador() {
+  var sel = document.getElementById('sel-relevador');
+  sel.classList.remove('falta');
+  var elegido = DB.relevadores.find(function(r) {
+    var nombre = (typeof r === 'string') ? r : r.nombre;
+    return nombre === sel.value;
+  });
+  permiteGaleria = !!(elegido && typeof elegido !== 'string' && elegido.galeria);
+  aplicarPermisoGaleria();
+}
+
+function aplicarPermisoGaleria() {
+  document.querySelectorAll('.input-foto').forEach(function(inp) {
+    if (permiteGaleria) inp.removeAttribute('capture');
+    else                inp.setAttribute('capture', 'environment');
+  });
+  // Actualizar el texto de los botones de foto
+  document.querySelectorAll('.foto-btn-label').forEach(function(lb) {
+    lb.textContent = permiteGaleria
+      ? '📸 Tomar o adjuntar foto'
+      : '📸 Tomar foto';
   });
 }
 
@@ -1116,6 +1235,7 @@ function alCambiarSitio() {
 }
 
 function ocultarBloquesDependientes() {
+  FOTOS = {};
   document.getElementById('bloque-areas').innerHTML = '';
   document.getElementById('cuerpo-cooperativa').innerHTML  = '';
   document.getElementById('cuerpo-espacio-eval').innerHTML = '';
@@ -1200,33 +1320,81 @@ function alCambiarEspacio() {
 
 // ════════════════════════════════════════════════════════════
 //  SISTEMA DE EVALUACIONES
-//  Cada evaluación (cooperativa, espacio y áreas) tiene:
-//    · pills Bien / Regular / Mal
-//    · notas propias  → aparecen si es Regular o Mal
-//    · foto propia    → aparece si es Mal (siempre opcional)
+//
+//  Hay dos tipos de evaluación:
+//   · tipo 'escala'  → Bien / Regular / Mal. En Regular o Mal
+//                      se piden notas (con opciones marcables
+//                      si el ítem las tiene) y se puede sumar foto.
+//   · tipo 'reporte' → no se puntúa. Solo se informa si hay un
+//                      problema, con notas y varias fotos.
 // ════════════════════════════════════════════════════════════
 
-// Ítems de cada nivel. La "clave" enlaza con los textos de AYUDAS.
+// ╔══════════════════════════════════════════════════════════╗
+// ║  ✏️ ZONA EDITABLE — ÍTEMS Y OPCIONES DE CADA NIVEL         ║
+// ╚══════════════════════════════════════════════════════════╝
 var ITEMS_ESPACIO = [
-  { id: 'espLimpieza',   label: 'Limpieza (barrido, cestos y bolsas)', clave: 'espLimpieza' },
-  { id: 'espJardineria', label: 'Césped y jardinería',                 clave: 'espJardineria' }
+  {
+    id: 'espLimpieza', label: 'Limpieza (barrido, cestos y bolsas)',
+    clave: 'espLimpieza', tipo: 'escala',
+    notaObligatoria: true,
+    opciones: [
+      'Falta recambio de bolsas (cesto/s lleno/s)',
+      'Cesto dañado',
+      'Objetos inadecuados dispersos',
+      'Suciedad de animales dispersa'
+    ]
+  },
+  {
+    id: 'espJardineria', label: 'Césped y jardinería',
+    clave: 'espJardineria', tipo: 'escala',
+    notaObligatoria: true,
+    opciones: [
+      'Falta corte de césped',
+      'Falta perfilado de césped',
+      'Presencia de malezas',
+      'Falta riego'
+    ]
+  },
+  {
+    id: 'espLuminaria', label: 'Luminaria',
+    clave: 'espLuminaria', tipo: 'reporte',
+    ayudaCorta: 'Informá solo si encontrás un problema. Indicá en las notas cuál es y en qué parte del espacio está.'
+  },
+  {
+    id: 'espArbolado', label: 'Arbolado',
+    clave: 'espArbolado', tipo: 'reporte',
+    ayudaCorta: 'Informá solo si encontrás un problema. Indicá en las notas cuál es y en qué parte del espacio está.'
+  }
 ];
-var ITEMS_AREA = [
-  { id: 'limpieza',     label: 'Limpieza',     clave: 'limpieza' },
-  { id: 'luminaria',    label: 'Luminaria',    clave: 'luminaria' },
-  { id: 'equipamiento', label: 'Equipamiento', clave: 'equipamiento' },
-  { id: 'jardineria',   label: 'Jardinería',   clave: 'jardineria' },
-  { id: 'vereda',       label: 'Vereda',       clave: 'vereda' }
-];
-var ITEM_COOP = { id: 'coopSeguridad', label: 'Elementos de seguridad y vestimenta', clave: 'coopSeguridad' };
 
-// Construye el HTML de UNA evaluación. evalId debe ser único.
+var ITEMS_AREA = [
+  { id: 'equipamiento', label: 'Equipamiento', clave: 'equipamiento', tipo: 'escala' }
+];
+
+var ITEM_COOP = {
+  id: 'coopSeguridad', label: 'Elementos de seguridad y vestimenta',
+  clave: 'coopSeguridad', tipo: 'escala'
+};
+
+// Guarda las fotos (base64) de cada evaluación: FOTOS[evalId] = [ ... ]
+var FOTOS = {};
+
+// ── CONSTRUCCIÓN DE UNA EVALUACIÓN ───────────────────────────
 function crearEvaluacion(evalId, item) {
+  return (item.tipo === 'reporte')
+    ? crearReporteProblema(evalId, item)
+    : crearEscala(evalId, item);
+}
+
+// Evaluación con puntaje Bien / Regular / Mal
+function crearEscala(evalId, item) {
+  var ayuda = item.clave
+    ? '<button class="btn-ayuda" onclick="abrirAyuda(\'' + item.clave + '\')" title="Ver criterios">?</button>'
+    : '';
   return '' +
     '<div class="eval-fila">' +
       '<div class="eval-label-linea">' +
-        '<span class="eval-label">' + item.label + '</span>' +
-        '<button class="btn-ayuda" onclick="abrirAyuda(\'' + item.clave + '\')" title="Ver criterios">?</button>' +
+        '<span class="eval-label">' + item.label + '</span>' + ayuda +
       '</div>' +
       '<div class="pill-grupo" id="pg-' + evalId + '">' +
         '<div class="pill" onclick="selPill(this,\'' + evalId + '\',\'bien\')">Bien</div>' +
@@ -1234,17 +1402,77 @@ function crearEvaluacion(evalId, item) {
         '<div class="pill" onclick="selPill(this,\'' + evalId + '\',\'mal\')">Mal</div>' +
       '</div>' +
       '<div class="eval-detalle" id="det-' + evalId + '">' +
-        '<label class="mini-label">Notas <span class="aclara">(opcional)</span></label>' +
-        '<textarea id="notas-' + evalId + '" rows="2" placeholder="Detallá lo observado..."></textarea>' +
-        '<div class="foto-zona" id="fz-' + evalId + '">' +
-          '<label class="foto-btn-label" for="file-' + evalId + '">📸 Adjuntar foto (opcional)</label>' +
-          '<input type="file" id="file-' + evalId + '" accept="image/*" capture="environment" onchange="previsualizarFoto(this,\'' + evalId + '\')">' +
-          '<div class="foto-preview" id="prev-' + evalId + '">' +
-            '<img id="img-' + evalId + '" src="" alt="foto">' +
-            '<button class="foto-quitar" onclick="quitarFoto(\'' + evalId + '\')" title="Quitar foto">✕</button>' +
-          '</div>' +
-        '</div>' +
+        bloqueNotas(evalId, item) +
+        bloqueFotos(evalId, item, false) +
       '</div>' +
+    '</div>';
+}
+
+// Bloque informativo: no se puntúa, solo se reporta un problema
+function crearReporteProblema(evalId, item) {
+  return '' +
+    '<div class="eval-fila">' +
+      '<div class="eval-label-linea">' +
+        '<span class="eval-label">' + item.label + '</span>' +
+        '<span class="tag-informativo">Solo si hay problema</span>' +
+      '</div>' +
+      '<button class="btn-reportar-problema" id="rp-' + evalId + '" ' +
+        'onclick="toggleReporteProblema(\'' + evalId + '\')">⚠️ Informar problema</button>' +
+      '<div class="eval-detalle" id="det-' + evalId + '">' +
+        (item.ayudaCorta ? '<p class="ayuda-corta">' + item.ayudaCorta + '</p>' : '') +
+        bloqueNotas(evalId, item) +
+        bloqueFotos(evalId, item, true) +
+      '</div>' +
+    '</div>';
+}
+
+// Notas: con opciones marcables si el ítem las define
+function bloqueNotas(evalId, item) {
+  var obligatoria = item.notaObligatoria || item.tipo === 'reporte';
+  var etiqueta = obligatoria
+    ? 'Notas <span class="aclara">(obligatorio)</span>'
+    : 'Notas <span class="aclara">(opcional)</span>';
+
+  var html = '<label class="mini-label">' + etiqueta + '</label>';
+
+  if (item.opciones && item.opciones.length) {
+    html += '<div class="opciones" id="ops-' + evalId + '">';
+    item.opciones.forEach(function(op, k) {
+      var opId = 'op-' + evalId + '-' + k;
+      html += '<label class="opcion" for="' + opId + '">' +
+                '<input type="checkbox" id="' + opId + '" value="' + op + '" ' +
+                  'onchange="marcarOpcion(\'' + evalId + '\')">' +
+                '<span>' + op + '</span>' +
+              '</label>';
+    });
+    // Opción "Otro" con campo libre
+    html += '<label class="opcion" for="otro-chk-' + evalId + '">' +
+              '<input type="checkbox" id="otro-chk-' + evalId + '" ' +
+                'onchange="toggleOtro(\'' + evalId + '\')">' +
+              '<span>Otro (completar)</span>' +
+            '</label>';
+    html += '</div>';
+    html += '<textarea id="notas-' + evalId + '" class="otro-texto" rows="2" ' +
+              'placeholder="Detallá el otro problema..." ' +
+              'oninput="marcarOpcion(\'' + evalId + '\')"></textarea>';
+  } else {
+    html += '<textarea id="notas-' + evalId + '" rows="2" ' +
+              'placeholder="Detallá lo observado..." ' +
+              'oninput="marcarOpcion(\'' + evalId + '\')"></textarea>';
+  }
+  return html;
+}
+
+// Fotos: una sola o varias según el ítem
+function bloqueFotos(evalId, item, multiple) {
+  var attrMultiple = multiple ? ' multiple' : '';
+  var texto = multiple ? '📸 Agregar fotos' : '📸 Tomar foto';
+  return '' +
+    '<div class="foto-zona" id="fz-' + evalId + '">' +
+      '<label class="foto-btn-label" for="file-' + evalId + '">' + texto + '</label>' +
+      '<input type="file" class="input-foto" id="file-' + evalId + '" accept="image/*"' +
+        attrMultiple + ' capture="environment" onchange="agregarFotos(this,\'' + evalId + '\')">' +
+      '<div class="fotos-grilla" id="grilla-' + evalId + '"></div>' +
     '</div>';
 }
 
@@ -1261,32 +1489,88 @@ function selPill(pill, evalId, valor) {
   var fz  = document.getElementById('fz-' + evalId);
 
   if (esOpcional && yaEstaba) {
-    // Queda en blanco: limpiar también la nota y la foto cargadas
     if (det) det.classList.remove('visible', 'nivel-regular', 'nivel-mal');
     if (fz)  fz.classList.remove('visible');
-    var t = document.getElementById('notas-' + evalId);
-    if (t) t.value = '';
-    quitarFoto(evalId);
+    limpiarDetalle(evalId);
     return;
   }
 
   pill.classList.add('sel-' + valor);
   if (!det) return;
 
-  // Notas visibles en Regular y Mal; foto solo en Mal
   det.classList.remove('nivel-regular', 'nivel-mal');
   if (valor === 'regular' || valor === 'mal') {
     det.classList.add('visible', 'nivel-' + valor);
-    if (fz) fz.classList.toggle('visible', valor === 'mal');
+    if (fz) fz.classList.add('visible');
   } else {
     det.classList.remove('visible');
     if (fz) fz.classList.remove('visible');
+    limpiarDetalle(evalId);
   }
 
   var pg = document.getElementById('pg-' + evalId);
   if (pg) pg.classList.remove('falta-eval');
+  aplicarPermisoGaleria();
 }
 
+// ── REPORTE DE PROBLEMA (luminaria / arbolado) ───────────────
+function toggleReporteProblema(evalId) {
+  var det = document.getElementById('det-' + evalId);
+  var btn = document.getElementById('rp-' + evalId);
+  var fz  = document.getElementById('fz-' + evalId);
+  var activo = det.classList.toggle('visible');
+
+  if (activo) {
+    det.classList.add('nivel-mal');
+    if (fz) fz.classList.add('visible');
+    btn.classList.add('activo');
+    btn.textContent = '✕ Cancelar reporte';
+    aplicarPermisoGaleria();
+  } else {
+    det.classList.remove('nivel-mal');
+    if (fz) fz.classList.remove('visible');
+    btn.classList.remove('activo');
+    btn.textContent = '⚠️ Informar problema';
+    limpiarDetalle(evalId);
+  }
+}
+
+function hayReporte(evalId) {
+  var det = document.getElementById('det-' + evalId);
+  return !!(det && det.classList.contains('visible') &&
+            document.getElementById('rp-' + evalId));
+}
+
+// ── OPCIONES MARCABLES ───────────────────────────────────────
+function marcarOpcion(evalId) {
+  var det = document.getElementById('det-' + evalId);
+  if (det) det.classList.remove('falta-nota');
+}
+
+function toggleOtro(evalId) {
+  var chk = document.getElementById('otro-chk-' + evalId);
+  var txt = document.getElementById('notas-' + evalId);
+  if (!chk || !txt) return;
+  txt.classList.toggle('visible', chk.checked);
+  if (!chk.checked) txt.value = '';
+  marcarOpcion(evalId);
+}
+
+function limpiarDetalle(evalId) {
+  var det = document.getElementById('det-' + evalId);
+  if (det) det.classList.remove('falta-nota');
+  var txt = document.getElementById('notas-' + evalId);
+  if (txt) { txt.value = ''; txt.classList.remove('visible'); }
+  var ops = document.getElementById('ops-' + evalId);
+  if (ops) ops.querySelectorAll('input[type=checkbox]').forEach(function(ch) { ch.checked = false; });
+  FOTOS[evalId] = [];
+  var grilla = document.getElementById('grilla-' + evalId);
+  if (grilla) grilla.innerHTML = '';
+  var input = document.getElementById('file-' + evalId);
+  if (input) input.value = '';
+}
+
+// ── LECTURA DE VALORES ───────────────────────────────────────
 function getEstado(evalId) {
   var g = document.getElementById('pg-' + evalId);
   if (!g) return '';
@@ -1297,24 +1581,23 @@ function getEstado(evalId) {
   return 'Mal';
 }
 
+// Junta las opciones marcadas y el texto libre en un solo string
 function getNotas(evalId) {
-  var t = document.getElementById('notas-' + evalId);
-  return t ? t.value.trim() : '';
+  var partes = [];
+  var ops = document.getElementById('ops-' + evalId);
+  if (ops) {
+    ops.querySelectorAll('input[type=checkbox]:checked').forEach(function(ch) {
+      if (ch.value) partes.push(ch.value);
+    });
+  }
+  var txt = document.getElementById('notas-' + evalId);
+  var libre = txt ? txt.value.trim() : '';
+  if (libre) partes.push(ops ? 'Otro: ' + libre : libre);
+  return partes.join(' · ');
 }
 
-function getFoto(evalId) {
-  var img = document.getElementById('img-' + evalId);
-  if (!img || !img.src || img.src.indexOf('data:') !== 0) return '';
-  return img.src;
-}
-
-function quitarFoto(evalId) {
-  var img   = document.getElementById('img-' + evalId);
-  var prev  = document.getElementById('prev-' + evalId);
-  var input = document.getElementById('file-' + evalId);
-  if (img) img.src = '';
-  if (prev) prev.style.display = 'none';
-  if (input) input.value = '';
+function getFotos(evalId) {
+  return FOTOS[evalId] || [];
 }
 
 function toggleArea(areaId) {
@@ -1322,6 +1605,9 @@ function toggleArea(areaId) {
 }
 
 // ── COMPRESIÓN DE FOTO ───────────────────────────────────────
+// Reduce la foto a máx. 1280px de lado y calidad 70% antes de
+// subirla: una foto de ~3 MB queda en ~200-400 KB sin perder
+// legibilidad para uso administrativo.
 function comprimirImagen(archivo) {
   return new Promise(function(resolve, reject) {
     var reader = new FileReader();
@@ -1347,50 +1633,56 @@ function comprimirImagen(archivo) {
   });
 }
 
-function previsualizarFoto(input, areaId) {
-  if (!input.files || !input.files[0]) return;
-  comprimirImagen(input.files[0])
-    .then(function(dataUrl) {
-      document.getElementById('img-' + areaId).src = dataUrl;
-      document.getElementById('prev-' + areaId).style.display = 'block';
+// ── AGREGAR FOTOS A UNA EVALUACIÓN ───────────────────────────
+// Acepta una o varias, las comprime y las suma a las que ya había.
+var MAX_FOTOS = 6;
+
+function agregarFotos(input, evalId) {
+  if (!input.files || input.files.length === 0) return;
+  var archivos = Array.prototype.slice.call(input.files);
+  var esMultiple = input.hasAttribute('multiple');
+
+  if (!FOTOS[evalId]) FOTOS[evalId] = [];
+  // Si el ítem admite una sola foto, la nueva reemplaza a la anterior
+  if (!esMultiple) FOTOS[evalId] = [];
+
+  var lugar = MAX_FOTOS - FOTOS[evalId].length;
+  if (archivos.length > lugar) {
+    archivos = archivos.slice(0, Math.max(lugar, 0));
+    mostrarMsg('Se pueden adjuntar hasta ' + MAX_FOTOS + ' fotos por evaluación.', false);
+  }
+  if (archivos.length === 0) { input.value = ''; return; }
+
+  Promise.all(archivos.map(comprimirImagen))
+    .then(function(dataUrls) {
+      FOTOS[evalId] = FOTOS[evalId].concat(dataUrls);
+      dibujarGrilla(evalId);
+      marcarOpcion(evalId);
+      input.value = '';
     })
     .catch(function(err) {
+      input.value = '';
       mostrarMsg('❌ Error con la foto: ' + err.message, false);
     });
 }
 
-function toggleArea(areaId) {
-  document.getElementById('area-card-' + areaId).classList.toggle('abierta');
-}
-
-// ── FORMATO DE SUPERFICIE (2 decimales + hectáreas) ──────────
-// Acepta números o texto con coma decimal. Si el valor no es
-// numérico, lo muestra tal cual vino de la planilla.
-function formatearSuperficie(valor) {
-  if (valor === null || valor === undefined || String(valor).trim() === '') return '';
-  var n = parseFloat(String(valor).replace(',', '.').replace(/[^\d.\-]/g, ''));
-  if (isNaN(n)) return String(valor);
-  return n.toFixed(2).replace('.', ',') + ' ha';
-}
-
-// ── ARMADO DE RECUADROS DE INFO ──────────────────────────────
-function filasHTML(filas) {
-  return filas.map(function(f) {
-    return '<div class="info-sitio-fila"><span class="clave">' + f[0] +
-           '</span><span class="valor">' + (f[1] || '—') + '</span></div>';
+function dibujarGrilla(evalId) {
+  var grilla = document.getElementById('grilla-' + evalId);
+  if (!grilla) return;
+  var fotos = FOTOS[evalId] || [];
+  grilla.innerHTML = fotos.map(function(src, k) {
+    return '<div class="foto-mini">' +
+             '<img src="' + src + '" alt="foto ' + (k + 1) + '">' +
+             '<button class="foto-quitar" onclick="quitarFoto(\'' + evalId + '\',' + k + ')" ' +
+               'title="Quitar">✕</button>' +
+           '</div>';
   }).join('');
 }
 
-// ── TELÉFONO CLICKEABLE ──────────────────────────────────────
-// Convierte el contacto en un link "tel:" para que al tocarlo
-// desde el celular se abra el marcador con el número cargado.
-function telLink(valor) {
-  if (!valor) return '';
-  var texto = String(valor).trim();
-  // Para el marcador dejamos solo dígitos, + y *#
-  var numero = texto.replace(/[^\d+*#]/g, '');
-  if (numero.length < 6) return texto;  // no parece un teléfono: lo dejo como texto
-  return '<a class="tel-link" href="tel:' + numero + '">' + texto + ' 📞</a>';
+function quitarFoto(evalId, indice) {
+  if (!FOTOS[evalId]) return;
+  FOTOS[evalId].splice(indice, 1);
+  dibujarGrilla(evalId);
 }
 
 // ── INFO SITIO ───────────────────────────────────────────────
@@ -1442,69 +1734,98 @@ function enviarRelevamiento() {
   var evaluaciones = [];
   var faltantes    = [];
 
-  // ── Cooperativa (OPCIONAL: solo se envía si la completaron)
-  var coopEvalId = 'coop-' + ITEM_COOP.id;
-  var coopEstado = getEstado(coopEvalId);
-  if (coopEstado) {
-    evaluaciones.push({
-      nivel: 'Cooperativa', areaId: '', areaNombre: '',
-      item: ITEM_COOP.label, estado: coopEstado,
-      notas: getNotas(coopEvalId), fotoBase64: getFoto(coopEvalId)
-    });
-  }
+  // Procesa un ítem y devuelve la evaluación, o registra el faltante
+  function procesar(evalId, item, nivel, area) {
+    var comun = {
+      nivel:      nivel,
+      areaId:     area ? area.id : '',
+      areaNombre: area ? nombreCompletoArea(area) : '',
+      item:       item.label
+    };
 
-  // ── Espacio (OBLIGATORIAS)
-  ITEMS_ESPACIO.forEach(function(item) {
-    var evalId = 'esp-' + item.id;
-    var estado = getEstado(evalId);
-    if (!estado) {
-      faltantes.push({ evalId: evalId, texto: 'Espacio → ' + item.label });
-      return;
-    }
-    evaluaciones.push({
-      nivel: 'Espacio', areaId: '', areaNombre: '',
-      item: item.label, estado: estado,
-      notas: getNotas(evalId), fotoBase64: getFoto(evalId)
-    });
-  });
-
-  // ── Áreas (OBLIGATORIAS)
-  areas.forEach(function(area) {
-    ITEMS_AREA.forEach(function(item) {
-      var evalId = 'ar-' + area.id + '-' + item.id;
-      var estado = getEstado(evalId);
-      if (!estado) {
-        faltantes.push({
-          evalId: evalId,
-          texto: nombreCompletoArea(area) + ' → ' + item.label,
-          areaId: area.id
-        });
+    // ── Ítems informativos (luminaria, arbolado)
+    if (item.tipo === 'reporte') {
+      if (!hayReporte(evalId)) return;              // no informó nada: no se envía
+      var notasR = getNotas(evalId);
+      if (!notasR) {                                 // informó pero no describió
+        faltantes.push({ evalId: evalId, tipoFalta: 'nota', areaId: comun.areaId });
         return;
       }
-      evaluaciones.push({
-        nivel: 'Área', areaId: area.id, areaNombre: nombreCompletoArea(area),
-        item: item.label, estado: estado,
-        notas: getNotas(evalId), fotoBase64: getFoto(evalId)
-      });
+      evaluaciones.push(Object.assign({}, comun, {
+        estado: 'Problema reportado',
+        notas:  notasR,
+        fotos:  getFotos(evalId)
+      }));
+      return;
+    }
+
+    // ── Ítems con puntaje
+    var estado = getEstado(evalId);
+    var opcional = (nivel === 'Cooperativa');
+    if (!estado) {
+      if (!opcional) faltantes.push({ evalId: evalId, tipoFalta: 'estado', areaId: comun.areaId });
+      return;
+    }
+
+    var notas = getNotas(evalId);
+    // Notas obligatorias en Regular o Mal si el ítem lo pide
+    if (item.notaObligatoria && (estado === 'Regular' || estado === 'Mal') && !notas) {
+      faltantes.push({ evalId: evalId, tipoFalta: 'nota', areaId: comun.areaId });
+      return;
+    }
+
+    evaluaciones.push(Object.assign({}, comun, {
+      estado: estado,
+      notas:  notas,
+      fotos:  getFotos(evalId)
+    }));
+  }
+
+  // Cooperativa (opcional)
+  procesar('coop-' + ITEM_COOP.id, ITEM_COOP, 'Cooperativa', null);
+
+  // Espacio
+  ITEMS_ESPACIO.forEach(function(item) {
+    procesar('esp-' + item.id, item, 'Espacio', null);
+  });
+
+  // Áreas
+  areas.forEach(function(area) {
+    ITEMS_AREA.forEach(function(item) {
+      procesar('ar-' + area.id + '-' + item.id, item, 'Área', area);
     });
   });
 
   // ── Si falta completar algo, avisar y llevar al primero
   if (faltantes.length > 0) {
     faltantes.forEach(function(f) {
-      var pg = document.getElementById('pg-' + f.evalId);
-      if (pg) pg.classList.add('falta-eval');
+      if (f.tipoFalta === 'estado') {
+        var pg = document.getElementById('pg-' + f.evalId);
+        if (pg) pg.classList.add('falta-eval');
+      } else {
+        var det = document.getElementById('det-' + f.evalId);
+        if (det) det.classList.add('falta-nota');
+      }
       if (f.areaId) {
         var card = document.getElementById('area-card-' + f.areaId);
         if (card) card.classList.add('abierta');
       }
     });
-    var cuantas = faltantes.length;
-    mostrarMsg(cuantas === 1
-      ? 'Falta 1 evaluación por completar.'
-      : 'Faltan ' + cuantas + ' evaluaciones por completar.', false);
-    var primero = document.getElementById('pg-' + faltantes[0].evalId);
-    if (primero) primero.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    var sinNota = faltantes.filter(function(f) { return f.tipoFalta === 'nota'; }).length;
+    var msg;
+    if (sinNota === faltantes.length) {
+      msg = sinNota === 1
+        ? 'Falta describir 1 evaluación (marcá una opción o completá las notas).'
+        : 'Faltan describir ' + sinNota + ' evaluaciones (marcá una opción o completá las notas).';
+    } else {
+      msg = faltantes.length === 1
+        ? 'Falta 1 evaluación por completar.'
+        : 'Faltan ' + faltantes.length + ' evaluaciones por completar.';
+    }
+    mostrarMsg(msg, false);
+    var ref = document.getElementById('pg-' + faltantes[0].evalId) ||
+              document.getElementById('det-' + faltantes[0].evalId);
+    if (ref) ref.scrollIntoView({ behavior: 'smooth', block: 'center' });
     return;
   }
 
@@ -1518,7 +1839,7 @@ function enviarRelevamiento() {
     espacioId:            espacioId,
     espacioNombre:        espacio ? espacio.nombre : '',
     // Resumen que va en las columnas J, K y L de RELEVAMIENTOS
-    seguridadCooperativa: coopEstado,
+    seguridadCooperativa: getEstado('coop-' + ITEM_COOP.id),
     espLimpieza:          getEstado('esp-espLimpieza'),
     espJardineria:        getEstado('esp-espJardineria'),
     // Una fila por evaluación en DETALLE_AREAS
@@ -1550,6 +1871,9 @@ function limpiarResaltadosFaltantes() {
   document.querySelectorAll('.pill-grupo.falta-eval').forEach(function(g) {
     g.classList.remove('falta-eval');
   });
+  document.querySelectorAll('.eval-detalle.falta-nota').forEach(function(d) {
+    d.classList.remove('falta-nota');
+  });
 }
 
 function guardarYAvisar(payload, btn) {
@@ -1575,6 +1899,7 @@ function resetFormulario() {
   document.getElementById('sel-espacio').innerHTML = '<option value="">— Seleccioná el espacio —</option>';
   ocultarBloquesDependientes();
   document.getElementById('bloque-info-sitio').style.display = 'none';
+  FOTOS = {};
   capturarFechaHora();
   capturarGPS();
 }
