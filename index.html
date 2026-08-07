@@ -760,7 +760,7 @@
 <!-- ✏️ SUBÍ ESTE NÚMERO CADA VEZ QUE ACTUALICES EL ARCHIVO.
      Sirve para saber desde el celular si estás viendo la versión
      nueva o una guardada en caché por el navegador. -->
-<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios &middot; v0.02</div>
+<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios &middot; v0.03</div>
 
 <!-- MODAL DE AYUDA -->
 <div class="modal-fondo" id="modal-ayuda" onclick="cerrarAyudaFondo(event)">
@@ -1683,6 +1683,35 @@ function quitarFoto(evalId, indice) {
   if (!FOTOS[evalId]) return;
   FOTOS[evalId].splice(indice, 1);
   dibujarGrilla(evalId);
+}
+
+// ── FORMATO DE SUPERFICIE (2 decimales + hectáreas) ──────────
+// Acepta números o texto con coma decimal. Si el valor no es
+// numérico, lo muestra tal cual vino de la planilla.
+function formatearSuperficie(valor) {
+  if (valor === null || valor === undefined || String(valor).trim() === '') return '';
+  var n = parseFloat(String(valor).replace(',', '.').replace(/[^\d.\-]/g, ''));
+  if (isNaN(n)) return String(valor);
+  return n.toFixed(2).replace('.', ',') + ' ha';
+}
+
+// ── TELÉFONO CLICKEABLE ──────────────────────────────────────
+// Convierte el contacto en un link "tel:" para que al tocarlo
+// desde el celular se abra el marcador con el número cargado.
+function telLink(valor) {
+  if (!valor) return '';
+  var texto  = String(valor).trim();
+  var numero = texto.replace(/[^\d+*#]/g, '');
+  if (numero.length < 6) return texto;   // no parece un teléfono: lo dejo como texto
+  return '<a class="tel-link" href="tel:' + numero + '">' + texto + ' 📞</a>';
+}
+
+// ── ARMADO DE RECUADROS DE INFO ──────────────────────────────
+function filasHTML(filas) {
+  return filas.map(function(f) {
+    return '<div class="info-sitio-fila"><span class="clave">' + f[0] +
+           '</span><span class="valor">' + (f[1] || '—') + '</span></div>';
+  }).join('');
 }
 
 // ── INFO SITIO ───────────────────────────────────────────────
