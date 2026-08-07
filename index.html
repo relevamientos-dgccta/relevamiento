@@ -760,7 +760,7 @@
 <!-- ✏️ SUBÍ ESTE NÚMERO CADA VEZ QUE ACTUALICES EL ARCHIVO.
      Sirve para saber desde el celular si estás viendo la versión
      nueva o una guardada en caché por el navegador. -->
-<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios &middot; v0.03</div>
+<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios &middot; v0.04</div>
 
 <!-- MODAL DE AYUDA -->
 <div class="modal-fondo" id="modal-ayuda" onclick="cerrarAyudaFondo(event)">
@@ -1190,12 +1190,17 @@ function aplicarPermisoGaleria() {
   document.querySelectorAll('.input-foto').forEach(function(inp) {
     if (permiteGaleria) inp.removeAttribute('capture');
     else                inp.setAttribute('capture', 'environment');
-  });
-  // Actualizar el texto de los botones de foto
-  document.querySelectorAll('.foto-btn-label').forEach(function(lb) {
-    lb.textContent = permiteGaleria
-      ? '📸 Tomar o adjuntar foto'
-      : '📸 Tomar foto';
+
+    // Actualizar solo el texto del botón de ESE input, respetando
+    // si admite una foto o varias.
+    var lb = document.querySelector('label[for="' + inp.id + '"]');
+    if (!lb) return;
+    var varias = inp.hasAttribute('multiple');
+    if (varias) {
+      lb.textContent = permiteGaleria ? '📸 Agregar fotos' : '📸 Sacar fotos';
+    } else {
+      lb.textContent = permiteGaleria ? '📸 Tomar o adjuntar foto' : '📸 Tomar foto';
+    }
   });
 }
 
