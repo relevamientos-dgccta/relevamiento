@@ -760,7 +760,7 @@
 <!-- ✏️ SUBÍ ESTE NÚMERO CADA VEZ QUE ACTUALICES EL ARCHIVO.
      Sirve para saber desde el celular si estás viendo la versión
      nueva o una guardada en caché por el navegador. -->
-<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios &middot; v0.04</div>
+<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios &middot; v0.05</div>
 
 <!-- MODAL DE AYUDA -->
 <div class="modal-fondo" id="modal-ayuda" onclick="cerrarAyudaFondo(event)">
@@ -813,6 +813,12 @@ var AYUDAS = {
     bien:    'No corresponde: este ítem no se puntúa.',
     regular: 'No corresponde: este ítem no se puntúa.',
     mal:     'Informalo solo si encontrás un problema (rama caída o en riesgo de caer, ejemplar seco o inclinado, raíces que levantan el solado). En las notas indicá cuál es el problema y en qué parte del espacio está, y sumá las fotos que hagan falta.'
+  },
+  espVehiculos: {
+    titulo: 'Vehículos abandonados',
+    bien:    'No corresponde: este ítem no se puntúa.',
+    regular: 'No corresponde: este ítem no se puntúa.',
+    mal:     'Informalo solo si encontrás vehículos que parezcan abandonados (sin patente, desarmados, con vegetación creciendo alrededor, o que vienen estando ahí sin moverse). En las notas indicá dónde están dentro del espacio, cuántos son y la patente si se puede leer. Sumá las fotos que hagan falta.'
   },
   espJardineria: {
     titulo: 'Césped y jardinería del espacio',
@@ -1369,6 +1375,11 @@ var ITEMS_ESPACIO = [
     id: 'espArbolado', label: 'Arbolado',
     clave: 'espArbolado', tipo: 'reporte',
     ayudaCorta: 'Informá solo si encontrás un problema. Indicá en las notas cuál es y en qué parte del espacio está.'
+  },
+  {
+    id: 'espVehiculos', label: 'Vehículos abandonados',
+    clave: 'espVehiculos', tipo: 'reporte',
+    ayudaCorta: 'Informá solo si encontrás vehículos abandonados. Indicá en las notas dónde están, cuántos son y, si se puede leer, la patente.'
   }
 ];
 
