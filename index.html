@@ -430,6 +430,112 @@
 
   textarea { resize: none; line-height: 1.5; }
 
+
+  /* ── EQUIPAMIENTO ── */
+  .equipo-card {
+    border: 1px solid var(--gris-borde);
+    border-radius: var(--radio);
+    margin-bottom: 10px;
+    background: var(--blanco);
+    overflow: hidden;
+  }
+  .equipo-card:last-child { margin-bottom: 0; }
+  .equipo-card.falta-suma { outline: 2px solid var(--mal-borde); outline-offset: 2px; }
+  .equipo-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 11px;
+    background: var(--gris-bg);
+    border-bottom: 1px solid var(--gris-borde);
+  }
+  .equipo-nombre {
+    font-family: var(--font-titulos);
+    font-size: 13px; font-weight: 600;
+    color: var(--azul-oscuro); flex: 1;
+  }
+  .equipo-total {
+    font-size: 11px; font-weight: 700;
+    color: var(--gris-muted);
+    background: var(--blanco);
+    border: 1px solid var(--gris-borde);
+    border-radius: 20px; padding: 2px 9px;
+    white-space: nowrap;
+  }
+  .equipo-cuerpo { padding: 11px; }
+
+  .conteo-fila {
+    display: flex; align-items: center; gap: 9px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--gris-borde);
+  }
+  .conteo-fila:last-of-type { border-bottom: none; }
+  .conteo-etiqueta {
+    flex: 1; font-size: 12.5px; line-height: 1.3;
+    color: var(--gris-texto);
+  }
+  .conteo-etiqueta .punto-estado {
+    display: inline-block; width: 8px; height: 8px;
+    border-radius: 50%; margin-right: 6px;
+    vertical-align: 1px;
+  }
+  .punto-ok   { background: var(--bien-borde); }
+  .punto-dano { background: var(--reg-borde); }
+  .punto-no   { background: var(--mal-borde); }
+
+  .contador { display: flex; align-items: center; gap: 0; flex-shrink: 0; }
+  .contador button {
+    width: 32px; height: 32px;
+    border: 1.5px solid var(--gris-borde);
+    background: var(--blanco);
+    color: var(--azul-oscuro);
+    font-size: 17px; font-weight: 700;
+    line-height: 1; cursor: pointer; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .contador button:first-child { border-radius: var(--radio) 0 0 var(--radio); }
+  .contador button:last-child  { border-radius: 0 var(--radio) var(--radio) 0; }
+  .contador button:active { background: var(--gris-bg); }
+  .contador button:disabled { opacity: .35; cursor: not-allowed; }
+  .contador input {
+    width: 44px; height: 32px;
+    border: 1.5px solid var(--gris-borde);
+    border-left: none; border-right: none;
+    text-align: center;
+    font-family: var(--font);
+    font-size: 15px; font-weight: 700;
+    color: var(--gris-texto);
+    background: var(--blanco);
+    -moz-appearance: textfield;
+    padding: 0;
+  }
+  .contador input::-webkit-outer-spin-button,
+  .contador input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+  .equipo-suma {
+    font-size: 11.5px; font-weight: 700;
+    text-align: right; padding: 7px 0 0;
+    color: var(--bien-txt);
+  }
+  .equipo-suma.error { color: var(--mal-txt); }
+
+  .equipo-extra {
+    display: none;
+    margin-top: 9px; padding: 10px;
+    border-radius: var(--radio);
+    background: var(--gris-card);
+    border: 1px solid var(--gris-borde);
+  }
+  .equipo-extra.visible { display: block; }
+  .equipo-extra.falta-nota { outline: 2px solid var(--mal-borde); outline-offset: 2px; }
+  .equipo-extra .mini-label {
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .05em;
+    color: var(--gris-muted);
+    display: block; margin-bottom: 5px;
+  }
+  .equipo-extra .mini-label .aclara {
+    font-weight: 600; text-transform: none; letter-spacing: 0; opacity: .75;
+  }
+
   /* ── MAPA ── */
   .geo-mapa {
     border: 1.5px solid var(--gris-borde);
@@ -760,7 +866,7 @@
 <!-- ✏️ SUBÍ ESTE NÚMERO CADA VEZ QUE ACTUALICES EL ARCHIVO.
      Sirve para saber desde el celular si estás viendo la versión
      nueva o una guardada en caché por el navegador. -->
-<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios &middot; v0.05</div>
+<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios &middot; v0.07</div>
 
 <!-- MODAL DE AYUDA -->
 <div class="modal-fondo" id="modal-ayuda" onclick="cerrarAyudaFondo(event)">
@@ -1182,6 +1288,7 @@ function poblarRelevadores() {
 var permiteGaleria = false;
 
 function alCambiarRelevador() {
+  ocultarMsg();   // limpia el aviso del envío anterior
   var sel = document.getElementById('sel-relevador');
   sel.classList.remove('falta');
   var elegido = DB.relevadores.find(function(r) {
@@ -1226,6 +1333,7 @@ function nombreCompletoArea(area) {
 
 // ── CAMBIO DE SITIO ─────────────────────────────────────────
 function alCambiarSitio() {
+  ocultarMsg();   // limpia el aviso del envío anterior
   var sitioId = document.getElementById('sel-sitio').value;
   ocultarBloquesDependientes();
   document.getElementById('bloque-info-sitio').style.display = 'none';
@@ -1247,6 +1355,7 @@ function alCambiarSitio() {
 
 function ocultarBloquesDependientes() {
   FOTOS = {};
+  EQUIPO = {};
   document.getElementById('bloque-areas').innerHTML = '';
   document.getElementById('cuerpo-cooperativa').innerHTML  = '';
   document.getElementById('cuerpo-espacio-eval').innerHTML = '';
@@ -1259,6 +1368,7 @@ function ocultarBloquesDependientes() {
 
 // ── CAMBIO DE ESPACIO ────────────────────────────────────────
 function alCambiarEspacio() {
+  ocultarMsg();   // limpia el aviso del envío anterior
   var espacioId = document.getElementById('sel-espacio').value;
   document.getElementById('bloque-areas').innerHTML = '';
   document.getElementById('bloque-geo').style.display           = 'none';
@@ -1315,9 +1425,26 @@ function alCambiarEspacio() {
     var card  = document.createElement('div');
     card.className = 'area-card';
     card.id = 'area-card-' + area.id;
+
+    // Ítems de escala del área (hoy no hay ninguno)
     var cuerpo = ITEMS_AREA.map(function(item) {
       return crearEvaluacion('ar-' + area.id + '-' + item.id, item);
     }).join('');
+
+    // Equipamiento del área
+    var equipos = (DB.equipamiento || []).filter(function(e) {
+      return String(e.areaId) === String(area.id);
+    });
+    if (equipos.length > 0) {
+      cuerpo += '<div class="eval-label-linea" style="margin-bottom:8px;">' +
+                  '<span class="eval-label">Equipamiento</span>' +
+                '</div>';
+      cuerpo += equipos.map(crearEquipamiento).join('');
+    } else {
+      cuerpo += '<p class="ayuda-corta" style="margin:0;">' +
+                'Esta área no tiene equipamiento cargado en la planilla.</p>';
+    }
+
     card.innerHTML =
       '<div class="area-header" onclick="toggleArea(\'' + area.id + '\')">' +
         '<span class="area-icono">' + icono + '</span>' +
@@ -1327,6 +1454,9 @@ function alCambiarEspacio() {
       '<div class="area-body">' + cuerpo + '</div>';
     cont.appendChild(card);
   });
+
+  // Precargar los conteos con la visita anterior
+  precargarEquipamiento(espacioId, areas);
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1383,9 +1513,27 @@ var ITEMS_ESPACIO = [
   }
 ];
 
-var ITEMS_AREA = [
-  { id: 'equipamiento', label: 'Equipamiento', clave: 'equipamiento', tipo: 'escala' }
+// Las áreas ya no tienen ítems de escala: se evalúa el equipamiento.
+// Si más adelante se agregan ítems por clasificación de área, van acá.
+var ITEMS_AREA = [];
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  ✏️ ZONA EDITABLE — CAUSAS DE DAÑO DEL EQUIPAMIENTO        ║
+// ║  Aparecen cuando se carga al menos una unidad             ║
+// ║  "operativa con daños". Se puede marcar más de una.       ║
+// ╚══════════════════════════════════════════════════════════╝
+var CAUSAS_DANO = [
+  'Corrosión u óxido',
+  'Desgaste de pintura',
+  'Pieza rota',
+  'Pieza faltante',
+  'Anclaje flojo o inestable',
+  'Grafiti o vandalismo',
+  'Madera astillada o deteriorada'
 ];
+
+// Estado en memoria de cada equipamiento: EQUIPO[eqId] = {sin, con, no, rem}
+var EQUIPO = {};
 
 var ITEM_COOP = {
   id: 'coopSeguridad', label: 'Elementos de seguridad y vestimenta',
@@ -1620,6 +1768,274 @@ function toggleArea(areaId) {
   document.getElementById('area-card-' + areaId).classList.toggle('abierta');
 }
 
+
+// ════════════════════════════════════════════════════════════
+//  EQUIPAMIENTO POR ÁREA
+//  Por cada equipamiento del área se cargan tres cantidades
+//  que deben sumar el total previsto en la planilla:
+//    · operativas sin daños
+//    · operativas con daños  → pide causas (multiselección)
+//    · no operativas         → pide cuántas se solicita remover
+// ════════════════════════════════════════════════════════════
+
+function crearEquipamiento(eq) {
+  var id = eq.id;
+  var h = '<div class="equipo-card" id="eq-card-' + id + '">';
+
+  h +=   '<div class="equipo-header">' +
+           '<span class="equipo-nombre">' + escaparHTML(eq.clasificacion) + '</span>' +
+           '<span class="equipo-total">' + eq.cantidad +
+             (eq.cantidad === 1 ? ' unidad' : ' unidades') + '</span>' +
+         '</div>';
+
+  h +=   '<div class="equipo-cuerpo">';
+  h +=     filaConteo(id, 'sin', 'punto-ok',   'Operativo (sin daños)');
+  h +=     filaConteo(id, 'con', 'punto-dano', 'Operativo (con daños)');
+  h +=     filaConteo(id, 'no',  'punto-no',   'No operativo');
+  h +=     '<div class="equipo-suma" id="eq-suma-' + id + '"></div>';
+
+  // Causas de daño (aparecen si "con daños" > 0)
+  h +=     '<div class="equipo-extra" id="eq-causas-' + id + '">' +
+             '<label class="mini-label">Daños detectados ' +
+               '<span class="aclara">(marcá al menos uno)</span></label>' +
+             '<div class="opciones" id="eq-ops-' + id + '">';
+  CAUSAS_DANO.forEach(function(causa, k) {
+    var opId = 'eqop-' + id + '-' + k;
+    h +=       '<label class="opcion" for="' + opId + '">' +
+                 '<input type="checkbox" id="' + opId + '" value="' + escaparHTML(causa) + '" ' +
+                   'onchange="limpiarAvisoEquipo(\'' + id + '\')">' +
+                 '<span>' + escaparHTML(causa) + '</span>' +
+               '</label>';
+  });
+  h +=             '<label class="opcion" for="eqotro-chk-' + id + '">' +
+                     '<input type="checkbox" id="eqotro-chk-' + id + '" ' +
+                       'onchange="toggleOtroEquipo(\'' + id + '\')">' +
+                     '<span>Otro (completar)</span>' +
+                   '</label>' +
+                 '</div>' +
+             '<textarea id="eq-otro-' + id + '" class="otro-texto" rows="2" ' +
+               'placeholder="Detallá el otro daño..." ' +
+               'oninput="limpiarAvisoEquipo(\'' + id + '\')"></textarea>' +
+           '</div>';
+
+  // Remoción (aparece si "no operativo" > 0)
+  h +=     '<div class="equipo-extra" id="eq-remo-' + id + '">' +
+             '<div class="conteo-fila" style="border:none;padding:0;">' +
+               '<span class="conteo-etiqueta">¿De cuántas se solicita la remoción?</span>' +
+               contadorHTML(id, 'rem') +
+             '</div>' +
+           '</div>';
+
+  // Notas y fotos (aparecen si hay daños o unidades no operativas)
+  h +=     '<div class="equipo-extra" id="eq-obs-' + id + '">' +
+             '<label class="mini-label">Observaciones ' +
+               '<span class="aclara">(opcional)</span></label>' +
+             '<textarea id="notas-eq-' + id + '" rows="2" ' +
+               'placeholder="Ubicación dentro del área, detalles..."></textarea>' +
+             '<div class="foto-zona visible" id="fz-eq-' + id + '" style="margin-top:9px;">' +
+               '<label class="foto-btn-label" for="file-eq-' + id + '">📸 Agregar fotos</label>' +
+               '<input type="file" class="input-foto" id="file-eq-' + id + '" accept="image/*" ' +
+                 'multiple capture="environment" onchange="agregarFotos(this,\'eq-' + id + '\')">' +
+               '<div class="fotos-grilla" id="grilla-eq-' + id + '"></div>' +
+             '</div>' +
+           '</div>';
+
+  h +=   '</div>';
+  h += '</div>';
+  return h;
+}
+
+function filaConteo(id, clave, punto, etiqueta) {
+  return '<div class="conteo-fila">' +
+           '<span class="conteo-etiqueta">' +
+             '<span class="punto-estado ' + punto + '"></span>' + etiqueta +
+           '</span>' +
+           contadorHTML(id, clave) +
+         '</div>';
+}
+
+function contadorHTML(id, clave) {
+  return '<div class="contador">' +
+           '<button type="button" onclick="ajustarConteo(\'' + id + '\',\'' + clave + '\',-1)">−</button>' +
+           '<input type="number" inputmode="numeric" min="0" id="cnt-' + id + '-' + clave + '" ' +
+             'value="0" onchange="setConteo(\'' + id + '\',\'' + clave + '\',this.value)" ' +
+             'oninput="setConteo(\'' + id + '\',\'' + clave + '\',this.value)">' +
+           '<button type="button" onclick="ajustarConteo(\'' + id + '\',\'' + clave + '\',1)">+</button>' +
+         '</div>';
+}
+
+// ── MANEJO DE LOS CONTADORES ─────────────────────────────────
+function ajustarConteo(id, clave, delta) {
+  var actual = (EQUIPO[id] && EQUIPO[id][clave]) || 0;
+  setConteo(id, clave, actual + delta);
+}
+
+function setConteo(id, clave, valor) {
+  if (!EQUIPO[id]) EQUIPO[id] = { sin: 0, con: 0, no: 0, rem: 0 };
+  var n = parseInt(valor, 10);
+  if (isNaN(n) || n < 0) n = 0;
+
+  var eq = buscarEquipo(id);
+  var tope = eq ? eq.cantidad : 99;
+
+  // Cada estado no puede superar el total previsto;
+  // la remoción no puede superar las no operativas.
+  if (clave === 'rem') tope = EQUIPO[id].no;
+  if (n > tope) n = tope;
+
+  EQUIPO[id][clave] = n;
+  var inp = document.getElementById('cnt-' + id + '-' + clave);
+  if (inp) inp.value = n;
+
+  // Si bajan las no operativas, la remoción se recorta sola
+  if (clave === 'no' && EQUIPO[id].rem > n) {
+    EQUIPO[id].rem = n;
+    var inpRem = document.getElementById('cnt-' + id + '-rem');
+    if (inpRem) inpRem.value = n;
+  }
+
+  refrescarEquipo(id);
+}
+
+function buscarEquipo(id) {
+  return (DB.equipamiento || []).find(function(e) { return String(e.id) === String(id); });
+}
+
+// Actualiza la suma, los bloques desplegables y los topes
+function refrescarEquipo(id) {
+  var e   = EQUIPO[id] || { sin: 0, con: 0, no: 0, rem: 0 };
+  var eq  = buscarEquipo(id);
+  var tot = eq ? eq.cantidad : 0;
+  var suma = e.sin + e.con + e.no;
+
+  var elSuma = document.getElementById('eq-suma-' + id);
+  if (elSuma) {
+    if (suma === tot) {
+      elSuma.textContent = '✓ ' + suma + ' de ' + tot;
+      elSuma.className = 'equipo-suma';
+    } else {
+      elSuma.textContent = 'Cargadas ' + suma + ' de ' + tot +
+                           ' (faltan ' + Math.abs(tot - suma) + ')';
+      elSuma.className = 'equipo-suma error';
+    }
+  }
+
+  var causas = document.getElementById('eq-causas-' + id);
+  if (causas) causas.classList.toggle('visible', e.con > 0);
+
+  var remo = document.getElementById('eq-remo-' + id);
+  if (remo) remo.classList.toggle('visible', e.no > 0);
+
+  var obs = document.getElementById('eq-obs-' + id);
+  if (obs) obs.classList.toggle('visible', (e.con + e.no) > 0);
+
+  // Deshabilitar el "−" cuando ya está en cero
+  ['sin','con','no','rem'].forEach(function(k) {
+    var inp = document.getElementById('cnt-' + id + '-' + k);
+    if (!inp) return;
+    var menos = inp.previousElementSibling;
+    if (menos) menos.disabled = ((e[k] || 0) === 0);
+  });
+
+  var card = document.getElementById('eq-card-' + id);
+  if (card && suma === tot) card.classList.remove('falta-suma');
+  aplicarPermisoGaleria();
+}
+
+function limpiarAvisoEquipo(id) {
+  var causas = document.getElementById('eq-causas-' + id);
+  if (causas) causas.classList.remove('falta-nota');
+}
+
+function toggleOtroEquipo(id) {
+  var chk = document.getElementById('eqotro-chk-' + id);
+  var txt = document.getElementById('eq-otro-' + id);
+  if (!chk || !txt) return;
+  txt.classList.toggle('visible', chk.checked);
+  if (!chk.checked) txt.value = '';
+  limpiarAvisoEquipo(id);
+}
+
+// ── LECTURA DE VALORES ───────────────────────────────────────
+function getCausasEquipo(id) {
+  var partes = [];
+  var ops = document.getElementById('eq-ops-' + id);
+  if (ops) {
+    ops.querySelectorAll('input[type=checkbox]:checked').forEach(function(ch) {
+      if (ch.value) partes.push(ch.value);
+    });
+  }
+  var txt = document.getElementById('eq-otro-' + id);
+  var libre = txt ? txt.value.trim() : '';
+  if (libre) partes.push('Otro: ' + libre);
+  return partes.join(' · ');
+}
+
+function getNotasEquipo(id) {
+  var t = document.getElementById('notas-eq-' + id);
+  return t ? t.value.trim() : '';
+}
+
+// ── PRECARGA CON LOS ÚLTIMOS VALORES ─────────────────────────
+// Pide al backend los conteos de la visita anterior. Si no hay
+// (primera visita o sin señal), precarga todo como operativo
+// sin daños según la cantidad de la planilla.
+function precargarEquipamiento(espacioId, areas) {
+  var ids = [];
+  areas.forEach(function(a) {
+    (DB.equipamiento || [])
+      .filter(function(e) { return String(e.areaId) === String(a.id); })
+      .forEach(function(e) { ids.push(e.id); });
+  });
+  if (ids.length === 0) return;
+
+  // Valor por defecto: todo operativo sin daños
+  ids.forEach(function(id) {
+    var eq = buscarEquipo(id);
+    EQUIPO[id] = { sin: eq ? eq.cantidad : 0, con: 0, no: 0, rem: 0 };
+    aplicarValores(id);
+  });
+
+  if (!navigator.onLine) return;
+
+  llamarAPI('ultimosEquipamiento', { espacioId: espacioId })
+    .then(function(res) {
+      if (!res || !res.ok || !res.ultimos) return;
+      ids.forEach(function(id) {
+        var u = res.ultimos[id];
+        if (!u) return;
+        var eq   = buscarEquipo(id);
+        var tot  = eq ? eq.cantidad : 0;
+        var suma = (u.opSinDanos || 0) + (u.opConDanos || 0) + (u.noOperativo || 0);
+        // Solo se precarga si lo anterior cuadra con el total actual
+        if (suma !== tot) return;
+        EQUIPO[id] = {
+          sin: u.opSinDanos  || 0,
+          con: u.opConDanos  || 0,
+          no:  u.noOperativo || 0,
+          rem: 0
+        };
+        aplicarValores(id);
+      });
+    })
+    .catch(function() { /* sin conexión: queda el valor por defecto */ });
+}
+
+function aplicarValores(id) {
+  var e = EQUIPO[id];
+  ['sin','con','no','rem'].forEach(function(k) {
+    var inp = document.getElementById('cnt-' + id + '-' + k);
+    if (inp) inp.value = e[k];
+  });
+  refrescarEquipo(id);
+}
+
+function escaparHTML(v) {
+  return String(v === null || v === undefined ? '' : v)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 // ── COMPRESIÓN DE FOTO ───────────────────────────────────────
 // Reduce la foto a máx. 1280px de lado y calidad 70% antes de
 // subirla: una foto de ~3 MB queda en ~200-400 KB sin perder
@@ -1834,11 +2250,51 @@ function enviarRelevamiento() {
     procesar('esp-' + item.id, item, 'Espacio', null);
   });
 
-  // Áreas
+  // Áreas: ítems de escala (hoy no hay) + equipamiento
   areas.forEach(function(area) {
     ITEMS_AREA.forEach(function(item) {
       procesar('ar-' + area.id + '-' + item.id, item, 'Área', area);
     });
+
+    (DB.equipamiento || [])
+      .filter(function(e) { return String(e.areaId) === String(area.id); })
+      .forEach(function(eq) {
+        var e = EQUIPO[eq.id] || { sin: 0, con: 0, no: 0, rem: 0 };
+        var suma = e.sin + e.con + e.no;
+
+        // Los tres conteos deben sumar el total previsto
+        if (suma !== eq.cantidad) {
+          faltantes.push({ evalId: 'eq-' + eq.id, tipoFalta: 'suma', areaId: area.id });
+          return;
+        }
+
+        // Si hay unidades con daños, hay que indicar cuáles
+        var causas = getCausasEquipo(eq.id);
+        if (e.con > 0 && !causas) {
+          faltantes.push({ evalId: 'eq-' + eq.id, tipoFalta: 'causa', areaId: area.id });
+          return;
+        }
+
+        // Resumen legible para la columna Estado
+        var resumen = e.sin + ' operativas · ' + e.con + ' con daños · ' + e.no + ' no operativas';
+        var notas = [causas, getNotasEquipo(eq.id)].filter(function(x) { return x; }).join(' | ');
+
+        evaluaciones.push({
+          nivel:       'Equipamiento',
+          areaId:      area.id,
+          areaNombre:  nombreCompletoArea(area),
+          item:        eq.clasificacion,
+          estado:      resumen,
+          notas:       notas,
+          fotos:       getFotos('eq-' + eq.id),
+          equipoId:    eq.id,
+          cantTotal:   eq.cantidad,
+          opSinDanos:  e.sin,
+          opConDanos:  e.con,
+          noOperativo: e.no,
+          remocion:    e.rem
+        });
+      });
   });
 
   // ── Si falta completar algo, avisar y llevar al primero
@@ -1847,6 +2303,12 @@ function enviarRelevamiento() {
       if (f.tipoFalta === 'estado') {
         var pg = document.getElementById('pg-' + f.evalId);
         if (pg) pg.classList.add('falta-eval');
+      } else if (f.tipoFalta === 'suma') {
+        var card2 = document.getElementById('eq-card-' + f.evalId.replace('eq-', ''));
+        if (card2) card2.classList.add('falta-suma');
+      } else if (f.tipoFalta === 'causa') {
+        var cau = document.getElementById('eq-causas-' + f.evalId.replace('eq-', ''));
+        if (cau) cau.classList.add('falta-nota');
       } else {
         var det = document.getElementById('det-' + f.evalId);
         if (det) det.classList.add('falta-nota');
@@ -1856,20 +2318,27 @@ function enviarRelevamiento() {
         if (card) card.classList.add('abierta');
       }
     });
-    var sinNota = faltantes.filter(function(f) { return f.tipoFalta === 'nota'; }).length;
+    var sumas = faltantes.filter(function(f) { return f.tipoFalta === 'suma'; }).length;
+    var caus  = faltantes.filter(function(f) { return f.tipoFalta === 'causa'; }).length;
     var msg;
-    if (sinNota === faltantes.length) {
-      msg = sinNota === 1
-        ? 'Falta describir 1 evaluación (marcá una opción o completá las notas).'
-        : 'Faltan describir ' + sinNota + ' evaluaciones (marcá una opción o completá las notas).';
+    if (sumas === faltantes.length) {
+      msg = sumas === 1
+        ? 'En 1 equipamiento las cantidades no suman el total previsto.'
+        : 'En ' + sumas + ' equipamientos las cantidades no suman el total previsto.';
+    } else if (caus === faltantes.length) {
+      msg = caus === 1
+        ? 'Falta indicar los daños de 1 equipamiento.'
+        : 'Falta indicar los daños de ' + caus + ' equipamientos.';
     } else {
       msg = faltantes.length === 1
         ? 'Falta 1 evaluación por completar.'
         : 'Faltan ' + faltantes.length + ' evaluaciones por completar.';
     }
     mostrarMsg(msg, false);
-    var ref = document.getElementById('pg-' + faltantes[0].evalId) ||
-              document.getElementById('det-' + faltantes[0].evalId);
+    var f0  = faltantes[0];
+    var ref = document.getElementById('pg-' + f0.evalId) ||
+              document.getElementById('det-' + f0.evalId) ||
+              document.getElementById('eq-card-' + String(f0.evalId).replace('eq-', ''));
     if (ref) ref.scrollIntoView({ behavior: 'smooth', block: 'center' });
     return;
   }
@@ -1919,6 +2388,12 @@ function limpiarResaltadosFaltantes() {
   document.querySelectorAll('.eval-detalle.falta-nota').forEach(function(d) {
     d.classList.remove('falta-nota');
   });
+  document.querySelectorAll('.equipo-card.falta-suma').forEach(function(d) {
+    d.classList.remove('falta-suma');
+  });
+  document.querySelectorAll('.equipo-extra.falta-nota').forEach(function(d) {
+    d.classList.remove('falta-nota');
+  });
 }
 
 function guardarYAvisar(payload, btn) {
@@ -1945,6 +2420,7 @@ function resetFormulario() {
   ocultarBloquesDependientes();
   document.getElementById('bloque-info-sitio').style.display = 'none';
   FOTOS = {};
+  EQUIPO = {};
   capturarFechaHora();
   capturarGPS();
 }
