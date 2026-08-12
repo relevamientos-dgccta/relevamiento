@@ -866,7 +866,7 @@
 <!-- ✏️ SUBÍ ESTE NÚMERO CADA VEZ QUE ACTUALICES EL ARCHIVO.
      Sirve para saber desde el celular si estás viendo la versión
      nueva o una guardada en caché por el navegador. -->
-<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios &middot; v0.07</div>
+<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios &middot; v0.08</div>
 
 <!-- MODAL DE AYUDA -->
 <div class="modal-fondo" id="modal-ayuda" onclick="cerrarAyudaFondo(event)">
@@ -1914,8 +1914,9 @@ function refrescarEquipo(id) {
       elSuma.textContent = '✓ ' + suma + ' de ' + tot;
       elSuma.className = 'equipo-suma';
     } else {
-      elSuma.textContent = 'Cargadas ' + suma + ' de ' + tot +
-                           ' (faltan ' + Math.abs(tot - suma) + ')';
+      var dif = tot - suma;
+      elSuma.textContent = 'Cargadas ' + suma + ' de ' + tot + ' (' +
+        (dif > 0 ? 'faltan ' + dif : 'sobran ' + (-dif)) + ')';
       elSuma.className = 'equipo-suma error';
     }
   }
