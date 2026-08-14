@@ -399,6 +399,11 @@
   .foto-zona { display: none; margin-top: 10px; }
   .foto-zona.visible { display: block; }
   .foto-zona input[type=file] { display: none; }
+
+  /* Dos botones separados: cámara y galería.
+     Android no abre la cámara desde el selector de archivos común,
+     por eso cada acción tiene su propio input. */
+  .foto-botones { display: flex; flex-wrap: wrap; gap: 6px; }
   .foto-btn-label {
     display: inline-flex; align-items: center; gap: 6px;
     font-size: 13px; font-weight: 700; font-family: var(--font);
@@ -408,6 +413,9 @@
     padding: 9px 14px; cursor: pointer;
   }
   .foto-btn-label:active { background: var(--gris-bg); }
+  /* El botón de galería solo se muestra a los relevadores habilitados
+     (columna B de la hoja RELEVADORES). */
+  .btn-galeria { display: none; }
   .fotos-grilla {
     display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;
   }
@@ -866,7 +874,7 @@
 <!-- ✏️ SUBÍ ESTE NÚMERO CADA VEZ QUE ACTUALICES EL ARCHIVO.
      Sirve para saber desde el celular si estás viendo la versión
      nueva o una guardada en caché por el navegador. -->
-<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios &middot; v0.08</div>
+<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios &middot; v0.09</div>
 
 <!-- MODAL DE AYUDA -->
 <div class="modal-fondo" id="modal-ayuda" onclick="cerrarAyudaFondo(event)">
@@ -1283,8 +1291,8 @@ function poblarRelevadores() {
 
 // ── PERMISO DE GALERÍA POR RELEVADOR ─────────────────────────
 // Si en la columna B de RELEVADORES dice "habilitado", ese
-// relevador puede adjuntar fotos del carrete. Si no, el input
-// lleva el atributo capture y solo abre la cámara.
+// relevador ve un segundo botón para adjuntar fotos del carrete.
+// El botón de cámara está SIEMPRE disponible para todos.
 var permiteGaleria = false;
 
 function alCambiarRelevador() {
@@ -1299,21 +1307,18 @@ function alCambiarRelevador() {
   aplicarPermisoGaleria();
 }
 
+// Muestra u oculta el botón de galería según el relevador elegido.
+//
+// ⚠️ POR QUÉ DOS BOTONES Y NO UNO SOLO:
+// Antes había un único input al que se le sacaba el atributo
+// "capture" cuando el relevador tenía permiso. En iPhone eso abre
+// un menú con "Sacar foto / Fototeca", pero en Android el mismo
+// input abre directamente el selector de galería y la cámara
+// queda inaccesible. Por eso ahora hay dos inputs separados:
+// uno con "capture" (cámara) y otro sin él (galería).
 function aplicarPermisoGaleria() {
-  document.querySelectorAll('.input-foto').forEach(function(inp) {
-    if (permiteGaleria) inp.removeAttribute('capture');
-    else                inp.setAttribute('capture', 'environment');
-
-    // Actualizar solo el texto del botón de ESE input, respetando
-    // si admite una foto o varias.
-    var lb = document.querySelector('label[for="' + inp.id + '"]');
-    if (!lb) return;
-    var varias = inp.hasAttribute('multiple');
-    if (varias) {
-      lb.textContent = permiteGaleria ? '📸 Agregar fotos' : '📸 Sacar fotos';
-    } else {
-      lb.textContent = permiteGaleria ? '📸 Tomar o adjuntar foto' : '📸 Tomar foto';
-    }
+  document.querySelectorAll('.btn-galeria').forEach(function(lb) {
+    lb.style.display = permiteGaleria ? 'inline-flex' : 'none';
   });
 }
 
@@ -1369,6 +1374,15 @@ function ocultarBloquesDependientes() {
 // ── CAMBIO DE ESPACIO ────────────────────────────────────────
 function alCambiarEspacio() {
   ocultarMsg();   // limpia el aviso del envío anterior
+
+  // ⚠️ IMPORTANTE: vaciar fotos y conteos ANTES de rearmar el
+  // formulario. Los identificadores del nivel Espacio y
+  // Cooperativa (esp-espLimpieza, coop-coopSeguridad...) son los
+  // mismos en todos los espacios, así que si no se limpian, las
+  // fotos cargadas para un espacio se enviarían con el siguiente.
+  FOTOS  = {};
+  EQUIPO = {};
+
   var espacioId = document.getElementById('sel-espacio').value;
   document.getElementById('bloque-areas').innerHTML = '';
   document.getElementById('bloque-geo').style.display           = 'none';
@@ -1454,6 +1468,9 @@ function alCambiarEspacio() {
       '<div class="area-body">' + cuerpo + '</div>';
     cont.appendChild(card);
   });
+
+  // Los botones de galería recién creados deben respetar el permiso
+  aplicarPermisoGaleria();
 
   // Precargar los conteos con la visita anterior
   precargarEquipamiento(espacioId, areas);
@@ -1629,14 +1646,30 @@ function bloqueNotas(evalId, item) {
 
 // Fotos: una sola o varias según el ítem
 function bloqueFotos(evalId, item, multiple) {
-  var attrMultiple = multiple ? ' multiple' : '';
-  var texto = multiple ? '📸 Agregar fotos' : '📸 Tomar foto';
   return '' +
     '<div class="foto-zona" id="fz-' + evalId + '">' +
-      '<label class="foto-btn-label" for="file-' + evalId + '">' + texto + '</label>' +
-      '<input type="file" class="input-foto" id="file-' + evalId + '" accept="image/*"' +
-        attrMultiple + ' capture="environment" onchange="agregarFotos(this,\'' + evalId + '\')">' +
+      botonesFoto(evalId, multiple) +
       '<div class="fotos-grilla" id="grilla-' + evalId + '"></div>' +
+    '</div>';
+}
+
+// ── BOTONES DE FOTO: CÁMARA Y GALERÍA POR SEPARADO ───────────
+// El botón de cámara (con "capture") lo ve todo el mundo.
+// El de galería solo aparece si el relevador está habilitado en
+// la columna B de la hoja RELEVADORES. Ver aplicarPermisoGaleria().
+function botonesFoto(evalId, multiple) {
+  var attrMultiple = multiple ? ' multiple' : '';
+  var textoCam = multiple ? '📸 Sacar fotos'      : '📸 Sacar foto';
+  var textoGal = multiple ? '🖼️ Adjuntar fotos'  : '🖼️ Adjuntar foto';
+  return '' +
+    '<div class="foto-botones">' +
+      '<label class="foto-btn-label" for="file-' + evalId + '">' + textoCam + '</label>' +
+      '<input type="file" class="input-foto" id="file-' + evalId + '" accept="image/*" ' +
+        'capture="environment"' + attrMultiple +
+        ' onchange="agregarFotos(this,\'' + evalId + '\')">' +
+      '<label class="foto-btn-label btn-galeria" for="filegal-' + evalId + '">' + textoGal + '</label>' +
+      '<input type="file" class="input-foto" id="filegal-' + evalId + '" accept="image/*"' +
+        attrMultiple + ' onchange="agregarFotos(this,\'' + evalId + '\')">' +
     '</div>';
 }
 
@@ -1720,6 +1753,18 @@ function toggleOtro(evalId) {
   marcarOpcion(evalId);
 }
 
+// Borra las fotos de una evaluación, tanto de memoria como de la
+// pantalla y de los dos inputs (cámara y galería).
+function limpiarFotos(evalId) {
+  FOTOS[evalId] = [];
+  var grilla = document.getElementById('grilla-' + evalId);
+  if (grilla) grilla.innerHTML = '';
+  var cam = document.getElementById('file-' + evalId);
+  if (cam) cam.value = '';
+  var gal = document.getElementById('filegal-' + evalId);
+  if (gal) gal.value = '';
+}
+
 function limpiarDetalle(evalId) {
   var det = document.getElementById('det-' + evalId);
   if (det) det.classList.remove('falta-nota');
@@ -1727,11 +1772,7 @@ function limpiarDetalle(evalId) {
   if (txt) { txt.value = ''; txt.classList.remove('visible'); }
   var ops = document.getElementById('ops-' + evalId);
   if (ops) ops.querySelectorAll('input[type=checkbox]').forEach(function(ch) { ch.checked = false; });
-  FOTOS[evalId] = [];
-  var grilla = document.getElementById('grilla-' + evalId);
-  if (grilla) grilla.innerHTML = '';
-  var input = document.getElementById('file-' + evalId);
-  if (input) input.value = '';
+  limpiarFotos(evalId);
 }
 
 // ── LECTURA DE VALORES ───────────────────────────────────────
@@ -1833,9 +1874,7 @@ function crearEquipamiento(eq) {
              '<textarea id="notas-eq-' + id + '" rows="2" ' +
                'placeholder="Ubicación dentro del área, detalles..."></textarea>' +
              '<div class="foto-zona visible" id="fz-eq-' + id + '" style="margin-top:9px;">' +
-               '<label class="foto-btn-label" for="file-eq-' + id + '">📸 Agregar fotos</label>' +
-               '<input type="file" class="input-foto" id="file-eq-' + id + '" accept="image/*" ' +
-                 'multiple capture="environment" onchange="agregarFotos(this,\'eq-' + id + '\')">' +
+               botonesFoto('eq-' + id, true) +
                '<div class="fotos-grilla" id="grilla-eq-' + id + '"></div>' +
              '</div>' +
            '</div>';
@@ -1930,6 +1969,13 @@ function refrescarEquipo(id) {
   var obs = document.getElementById('eq-obs-' + id);
   if (obs) obs.classList.toggle('visible', (e.con + e.no) > 0);
 
+  // ⚠️ Si un bloque deja de corresponder, se borra lo que tenía
+  // cargado. Sin esto, alguien que marca daños y después corrige
+  // el conteo a cero seguiría enviando esas causas y esas fotos
+  // en una fila que dice que está todo operativo.
+  if (e.con === 0)           limpiarCausasEquipo(id);
+  if ((e.con + e.no) === 0)  limpiarObsEquipo(id);
+
   // Deshabilitar el "−" cuando ya está en cero
   ['sin','con','no','rem'].forEach(function(k) {
     var inp = document.getElementById('cnt-' + id + '-' + k);
@@ -1941,6 +1987,23 @@ function refrescarEquipo(id) {
   var card = document.getElementById('eq-card-' + id);
   if (card && suma === tot) card.classList.remove('falta-suma');
   aplicarPermisoGaleria();
+}
+
+// Borra las causas de daño marcadas y el texto de "Otro"
+function limpiarCausasEquipo(id) {
+  var ops = document.getElementById('eq-ops-' + id);
+  if (ops) ops.querySelectorAll('input[type=checkbox]').forEach(function(ch) { ch.checked = false; });
+  var txt = document.getElementById('eq-otro-' + id);
+  if (txt) { txt.value = ''; txt.classList.remove('visible'); }
+  var cau = document.getElementById('eq-causas-' + id);
+  if (cau) cau.classList.remove('falta-nota');
+}
+
+// Borra las observaciones y las fotos del equipamiento
+function limpiarObsEquipo(id) {
+  var t = document.getElementById('notas-eq-' + id);
+  if (t) t.value = '';
+  limpiarFotos('eq-' + id);
 }
 
 function limpiarAvisoEquipo(id) {
@@ -2170,6 +2233,19 @@ function mostrarInfoEspacio(espacio) {
   document.getElementById('bloque-info-espacio').style.display = 'block';
 }
 
+// ── ID DEL RELEVAMIENTO ──────────────────────────────────────
+// Se genera acá, en el celular, y NO en el servidor.
+// Motivo: si el envío llega al backend pero la respuesta se
+// pierde en el camino (señal intermitente, timeout), el
+// relevamiento cae en la cola offline y se reintenta. Con el ID
+// generado en el servidor eso creaba un relevamiento duplicado
+// con todas sus fotos. Ahora el ID viaja con el payload y el
+// backend descarta el reintento si ya lo tiene guardado.
+function generarRelevId() {
+  return 'REL-' + new Date().getTime() + '-' +
+         Math.floor(Math.random() * 9000 + 1000);
+}
+
 // ── ENVIAR ───────────────────────────────────────────────────
 function enviarRelevamiento() {
   var relevador = document.getElementById('sel-relevador').value;
@@ -2345,6 +2421,7 @@ function enviarRelevamiento() {
   }
 
   var payload = {
+    relevId:              generarRelevId(),
     relevador:            relevador,
     fechaHora:            fechaHora,
     latitud:              gpsLat  || 'No disponible',
@@ -2373,7 +2450,11 @@ function enviarRelevamiento() {
       btn.disabled = false;
       btn.innerHTML = '<span>📤</span> Enviar relevamiento';
       if (res.ok) {
-        mostrarMsg('✅ Relevamiento enviado correctamente. ID: ' + res.id, true);
+        if (res.duplicado) {
+          mostrarMsg('✅ Este relevamiento ya estaba guardado. ID: ' + res.id, true);
+        } else {
+          mostrarMsg('✅ Relevamiento enviado correctamente. ID: ' + res.id, true);
+        }
         resetFormulario();
       } else {
         mostrarMsg('❌ Error al guardar: ' + res.error, false);
@@ -2422,6 +2503,7 @@ function resetFormulario() {
   document.getElementById('bloque-info-sitio').style.display = 'none';
   FOTOS = {};
   EQUIPO = {};
+  permiteGaleria = false;
   capturarFechaHora();
   capturarGPS();
 }
