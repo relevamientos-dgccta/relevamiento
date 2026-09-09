@@ -874,7 +874,7 @@
 <!-- ✏️ SUBÍ ESTE NÚMERO CADA VEZ QUE ACTUALICES EL ARCHIVO.
      Sirve para saber desde el celular si estás viendo la versión
      nueva o una guardada en caché por el navegador. -->
-<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios &middot; v0.10</div>
+<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios &middot; v0.11</div>
 
 <!-- MODAL DE AYUDA -->
 <div class="modal-fondo" id="modal-ayuda" onclick="cerrarAyudaFondo(event)">
@@ -2172,7 +2172,12 @@ function comprimirImagen(archivo) {
 
 // ── AGREGAR FOTOS A UNA EVALUACIÓN ───────────────────────────
 // Acepta una o varias, las comprime y las suma a las que ya había.
-var MAX_FOTOS = 6;
+//
+// ✏️ MAX_FOTOS baja de 6 a 4 a propósito: cada foto son uno o dos
+// segundos de subida a Drive, y un relevamiento con problemas en
+// varias áreas puede juntar decenas. Bajar el tope recorta el peor
+// caso sin afectar el uso normal (casi nadie carga más de 2 o 3).
+var MAX_FOTOS = 4;
 
 function agregarFotos(input, evalId) {
   if (!input.files || input.files.length === 0) return;
@@ -2503,7 +2508,16 @@ function enviarRelevamiento() {
       btn.innerHTML = '<span>📤</span> Enviar relevamiento';
       if (res.ok) {
         if (res.duplicado) {
-          mostrarMsg('✅ Este relevamiento ya estaba guardado. ID: ' + res.id, true);
+          // El relevamiento ya estaba guardado (reintento de un envío
+          // que se había cortado). Si traía fotos, pueden no haberse
+          // subido: se avisa en vez de dar un ✅ que tape el problema.
+          if (res.fotosPendientes > 0) {
+            mostrarMsg('⚠️ Este relevamiento ya estaba guardado (ID: ' + res.id + '), así que ' +
+                       'no se volvió a enviar. Las fotos de este reintento pueden no haberse ' +
+                       'guardado. Ya quedó anotado para que lo revisen.', false);
+          } else {
+            mostrarMsg('✅ Este relevamiento ya estaba guardado. ID: ' + res.id, true);
+          }
         } else {
           mostrarMsg('✅ Relevamiento enviado correctamente. ID: ' + res.id, true);
         }
