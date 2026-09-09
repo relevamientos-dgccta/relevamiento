@@ -874,7 +874,7 @@
 <!-- ✏️ SUBÍ ESTE NÚMERO CADA VEZ QUE ACTUALICES EL ARCHIVO.
      Sirve para saber desde el celular si estás viendo la versión
      nueva o una guardada en caché por el navegador. -->
-<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios &middot; v0.09</div>
+<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios &middot; v0.10</div>
 
 <!-- MODAL DE AYUDA -->
 <div class="modal-fondo" id="modal-ayuda" onclick="cerrarAyudaFondo(event)">
@@ -985,7 +985,8 @@ function llamarAPI(accion, datos) {
 }
 
 // ── ESTADO GLOBAL ──────────────────────────────────────────
-var DB        = { relevadores: [], sitios: [], espacios: [], areas: [] };
+var DB        = { relevadores: [], sitios: [], espacios: [], areas: [],
+                  equipamiento: [], infraestructura: [] };
 var gpsLat    = null;
 var gpsLon    = null;
 var fechaHora = null;
@@ -1418,14 +1419,20 @@ function alCambiarEspacio() {
 
   // ── Sección 6: áreas
   var areas = DB.areas.filter(function(a) { return String(a.espacioId) === String(espacioId); });
+  // ✏️ Las claves deben coincidir EXACTO con la columna "clasificación"
+  //    de la hoja AREAS. Si no coincide, se usa 📌.
   var iconos = {
-    'Posta deportiva':   '🏋️',
-    'Patio de juegos':   '🛝',
-    'Área de encuentro': '🤝',
-    'Playón deportivo':  '⚽',
-    'Cancha':            '⚽',
-    'Canil':             '🐕',
-    'Isla verde':        '🌿'
+    'Posta deportiva':      '🏋️',
+    'Patio de juegos':      '🛝',
+    'Área de encuentro':    '🤝',
+    'Playón deportivo':     '⚽',
+    'Cancha':               '⚽',
+    'Canil':                '🐕',
+    'Cantero / Isla verde': '🌿',
+    'Calistenia':           '💪',
+    'Ping pong':            '🏓',
+    'Pista de skate':       '🛹',
+    'Anfiteatro':           '🎭'
   };
 
   var cont = document.getElementById('bloque-areas');
@@ -1455,8 +1462,26 @@ function alCambiarEspacio() {
                 '</div>';
       cuerpo += equipos.map(crearEquipamiento).join('');
     } else {
+      // El área puede no tener equipamiento cargado, o tenerlo todo en
+      // cantidad 0 (ya removido). En los dos casos no hay nada que contar.
       cuerpo += '<p class="ayuda-corta" style="margin:0;">' +
-                'Esta área no tiene equipamiento cargado en la planilla.</p>';
+                'Sin equipamiento operativo. No se evalúa.</p>';
+    }
+
+    // ── Infraestructura del área ──
+    // No se puntúa: por cada ítem hay un bloque que solo se completa
+    // si el inspector encuentra un problema o deterioro que informar.
+    var infra = (DB.infraestructura || []).filter(function(f) {
+      return String(f.areaId) === String(area.id);
+    });
+    if (infra.length > 0) {
+      cuerpo += '<div class="eval-label-linea" style="margin:14px 0 8px;">' +
+                  '<span class="eval-label">Infraestructura</span>' +
+                  '<span class="tag-informativo">Solo si hay problema</span>' +
+                '</div>';
+      cuerpo += infra.map(function(f) {
+        return crearEvaluacion('inf-' + f.id, itemInfraestructura(f));
+      }).join('');
     }
 
     card.innerHTML =
@@ -1556,6 +1581,22 @@ var ITEM_COOP = {
   id: 'coopSeguridad', label: 'Elementos de seguridad y vestimenta',
   clave: 'coopSeguridad', tipo: 'escala'
 };
+
+// ── ÍTEM DE INFRAESTRUCTURA ──────────────────────────────────
+// Cada ítem cargado en la hoja INFRAESTRUCTURA (platea, reja,
+// piso antigolpes...) genera un bloque del tipo "reporte": no se
+// puntúa, solo se informa si hay un problema, con notas y fotos.
+// Si la planilla tiene la medida cargada, se muestra al lado.
+function itemInfraestructura(f) {
+  var medida = String(f.medida || '').trim();
+  return {
+    id:    f.id,
+    label: f.clasificacion + (medida ? ' (' + medida + ')' : ''),
+    tipo:  'reporte',
+    ayudaCorta: 'Informá solo si encontrás un deterioro o problema. ' +
+                'Indicá en las notas cuál es y en qué parte del área está.'
+  };
+}
 
 // Guarda las fotos (base64) de cada evaluación: FOTOS[evalId] = [ ... ]
 var FOTOS = {};
@@ -2273,13 +2314,16 @@ function enviarRelevamiento() {
   var faltantes    = [];
 
   // Procesa un ítem y devuelve la evaluación, o registra el faltante
-  function procesar(evalId, item, nivel, area) {
-    var comun = {
+  // "extra" permite sumar campos propios de un nivel. Hoy lo usa
+  // Infraestructura para guardar el ID del ítem (IF-0000) en la
+  // misma columna donde el equipamiento guarda el suyo.
+  function procesar(evalId, item, nivel, area, extra) {
+    var comun = Object.assign({
       nivel:      nivel,
       areaId:     area ? area.id : '',
       areaNombre: area ? nombreCompletoArea(area) : '',
       item:       item.label
-    };
+    }, extra || {});
 
     // ── Ítems informativos (luminaria, arbolado)
     if (item.tipo === 'reporte') {
@@ -2332,6 +2376,14 @@ function enviarRelevamiento() {
     ITEMS_AREA.forEach(function(item) {
       procesar('ar-' + area.id + '-' + item.id, item, 'Área', area);
     });
+
+    // Infraestructura: solo viaja lo que el inspector informó como problema
+    (DB.infraestructura || [])
+      .filter(function(f) { return String(f.areaId) === String(area.id); })
+      .forEach(function(f) {
+        procesar('inf-' + f.id, itemInfraestructura(f), 'Infraestructura', area,
+                 { equipoId: f.id });
+      });
 
     (DB.equipamiento || [])
       .filter(function(e) { return String(e.areaId) === String(area.id); })
