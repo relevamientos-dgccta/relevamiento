@@ -2,7 +2,9 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<!-- Sin maximum-scale: bloquear el zoom impide agrandar el texto en la calle
+     y no cumple accesibilidad (WCAG 1.4.4). -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Relevamiento — GCBA</title>
 <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1Og4pbNqa53tbZv9YfO90xY3Wo2gVPqBG">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -874,7 +876,7 @@
 <!-- ✏️ SUBÍ ESTE NÚMERO CADA VEZ QUE ACTUALICES EL ARCHIVO.
      Sirve para saber desde el celular si estás viendo la versión
      nueva o una guardada en caché por el navegador. -->
-<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios &middot; v0.11</div>
+<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios &middot; v0.13</div>
 
 <!-- MODAL DE AYUDA -->
 <div class="modal-fondo" id="modal-ayuda" onclick="cerrarAyudaFondo(event)">
@@ -1111,7 +1113,7 @@ function actualizarEstadoConexion() {
     el.className = 'estado-conexion online';
     texto.textContent = 'En línea';
     procesarColaPendientes();
-    if (DB.sitios.length === 0 || catalogoVencido()) cargarCatalogo(true);
+    if (DB.sitios.length === 0 || catalogoVencido()) refrescarCatalogoEnSegundoPlano();
   } else {
     el.className = 'estado-conexion offline';
     texto.textContent = 'Sin señal';
@@ -1123,7 +1125,7 @@ window.addEventListener('offline', actualizarEstadoConexion);
 setInterval(function() {
   if (navigator.onLine) {
     procesarColaPendientes();
-    if (catalogoVencido()) cargarCatalogo(true);
+    if (catalogoVencido()) refrescarCatalogoEnSegundoPlano();
   }
 }, 30000);
 
@@ -1162,28 +1164,136 @@ function aplicarCatalogo(datos) {
   poblarSitios();
 }
 
-function cargarCatalogo(esRefrescoSilencioso) {
+// ════════════════════════════════════════════════════════════
+//  DESCARGA DEL CATÁLOGO
+//
+//  ⚠️ POR QUÉ ESTO ES ASÍ:
+//  Antes la app disparaba DOS descargas del catálogo al abrirse
+//  (una desde actualizarEstadoConexion y otra desde el evento
+//  load). Eran dos pedidos idénticos de ~150 KB compitiendo, y
+//  con señal débil uno se caía y la app mostraba "sin conexión"
+//  aunque el servidor estuviera perfecto. Además no reintentaba
+//  y obligaba a esperar la descarga aunque hubiera copia guardada.
+//
+//  Ahora: un solo pedido a la vez, con reintentos, y la app abre
+//  al instante con la copia local mientras se actualiza por atrás.
+// ════════════════════════════════════════════════════════════
+
+// Pedido en vuelo. Si alguien pide el catálogo mientras ya se
+// está descargando, recibe la MISMA promesa en vez de disparar
+// otra descarga.
+var cargaEnCurso = null;
+
+// ✏️ Cuántas veces se reintenta antes de darse por vencido
+var INTENTOS_CATALOGO = 3;
+
+// Un catálogo válido tiene que traer al menos relevadores y sitios.
+// Si el backend devolvió un error, viene { ok:false, error:'...' }:
+// sin esta comprobación, ese objeto se tomaba como catálogo válido,
+// la app fallaba más adelante y el usuario veía "sin conexión".
+function catalogoValido(d) {
+  return !!(d && d.sitios && d.relevadores && d.sitios.length !== undefined);
+}
+
+function pedirCatalogoConReintentos(intentosRestantes) {
   return llamarAPI('datosIniciales')
     .then(function(datos) {
-      aplicarCatalogo(datos);
-      guardarCatalogoLocal(datos);
-      return true;
-    })
-    .catch(function() {
-      var cache = leerCatalogoLocal();
-      if (cache && cache.datos) {
-        aplicarCatalogo(cache.datos);
-        if (!esRefrescoSilencioso) {
-          var dias = Math.floor((new Date().getTime() - cache.guardadoEn) / UN_DIA_MS);
-          if (dias >= 1) {
-            mostrarMsg('⚠️ Estás sin señal. Usando el catálogo guardado hace ' + dias +
-              (dias === 1 ? ' día' : ' días') + '. Se actualizará solo al recuperar conexión.', false);
-          }
-        }
-      } else if (!esRefrescoSilencioso) {
-        mostrarMsg('Sin conexión y sin catálogo guardado. Abrí la app con señal al menos una vez para poder usarla offline.', false);
+      if (!catalogoValido(datos)) {
+        throw new Error(
+          (datos && datos.error) ? datos.error : 'El servidor respondió sin datos.'
+        );
       }
-      return false;
+      return datos;
+    })
+    .catch(function(err) {
+      if (intentosRestantes <= 1) throw err;
+      // Espera creciente entre intentos (1,5 s, 3 s...)
+      var espera = 1500 * (INTENTOS_CATALOGO - intentosRestantes + 1);
+      return new Promise(function(r) { setTimeout(r, espera); })
+        .then(function() { return pedirCatalogoConReintentos(intentosRestantes - 1); });
+    });
+}
+
+function descargarCatalogo() {
+  if (cargaEnCurso) return cargaEnCurso;      // ya hay uno en camino
+  cargaEnCurso = pedirCatalogoConReintentos(INTENTOS_CATALOGO)
+    .then(function(datos) {
+      cargaEnCurso = null;
+      guardarCatalogoLocal(datos);
+      return datos;
+    })
+    .catch(function(err) {
+      cargaEnCurso = null;
+      throw err;
+    });
+  return cargaEnCurso;
+}
+
+// ¿El inspector ya empezó a cargar algo? Si eligió un sitio, el
+// refresco de fondo NO debe pisarle el formulario.
+function hayTrabajoEnCurso() {
+  var s = document.getElementById('sel-sitio');
+  var r = document.getElementById('sel-relevador');
+  return !!((s && s.value) || (r && r.value));
+}
+
+// Actualiza el catálogo por atrás, sin molestar ni mostrar carteles.
+// Si falla, no pasa nada: la app sigue con la copia guardada.
+function refrescarCatalogoEnSegundoPlano() {
+  if (!navigator.onLine) return;
+  descargarCatalogo()
+    .then(function(datos) {
+      if (hayTrabajoEnCurso()) return;   // la copia nueva ya quedó guardada
+      aplicarCatalogo(datos);
+    })
+    .catch(function() { /* silencioso a propósito */ });
+}
+
+// Mensaje honesto: distingue falta de señal de error del servidor.
+function mensajeDeFalla(err) {
+  if (!navigator.onLine) {
+    return '⚠️ Sin señal y sin catálogo guardado. Abrí la app con conexión ' +
+           'al menos una vez para poder usarla después sin señal.';
+  }
+  return '❌ No se pudieron cargar los datos. El servidor respondió: ' +
+         (err && err.message ? err.message : 'error desconocido') +
+         '. Probá el botón ⟳ del encabezado en unos segundos.';
+}
+
+function ocultarPantallaCarga() {
+  var p = document.getElementById('pantalla-carga');
+  if (p) p.style.display = 'none';
+}
+
+// ── ARRANQUE ────────────────────────────────────────────────
+// Si hay copia guardada, la app abre YA con esa copia y se
+// actualiza por atrás. Solo espera la descarga cuando es la
+// primera vez y no hay nada guardado.
+function arrancarCatalogo() {
+  var cache = leerCatalogoLocal();
+
+  if (cache && catalogoValido(cache.datos)) {
+    aplicarCatalogo(cache.datos);
+    ocultarPantallaCarga();
+
+    var dias = Math.floor((new Date().getTime() - cache.guardadoEn) / UN_DIA_MS);
+    if (!navigator.onLine && dias >= 1) {
+      mostrarMsg('⚠️ Estás sin señal. Usando el catálogo guardado hace ' + dias +
+        (dias === 1 ? ' día' : ' días') + '. Se actualizará solo al recuperar conexión.', false);
+    }
+    refrescarCatalogoEnSegundoPlano();
+    return;
+  }
+
+  // Primera vez: no queda otra que esperar
+  descargarCatalogo()
+    .then(function(datos) {
+      aplicarCatalogo(datos);
+      ocultarPantallaCarga();
+    })
+    .catch(function(err) {
+      ocultarPantallaCarga();
+      mostrarMsg(mensajeDeFalla(err), false);
     });
 }
 
@@ -1210,6 +1320,9 @@ function actualizarCatalogoManual() {
 
   llamarAPI('datosIniciales')
     .then(function(datos) {
+      if (!catalogoValido(datos)) {
+        throw new Error((datos && datos.error) ? datos.error : 'El servidor respondió sin datos.');
+      }
       aplicarCatalogo(datos);
       guardarCatalogoLocal(datos);
 
@@ -1233,10 +1346,10 @@ function actualizarCatalogoManual() {
       mostrarMsg('✅ Datos actualizados: ' + datos.sitios.length + ' sitios, ' +
                  datos.espacios.length + ' espacios y ' + datos.areas.length + ' áreas.', true);
     })
-    .catch(function() {
+    .catch(function(err) {
       btn.disabled = false;
       btn.classList.remove('girando');
-      mostrarMsg('❌ No se pudo actualizar. Revisá la conexión y probá de nuevo.', false);
+      mostrarMsg(mensajeDeFalla(err), false);
     });
 }
 window.addEventListener('load', function() {
@@ -1244,21 +1357,54 @@ window.addEventListener('load', function() {
   capturarGPS();
   actualizarEstadoConexion();
   actualizarBannerPendientes();
-  cargarCatalogo(false).then(function() {
-    document.getElementById('pantalla-carga').style.display = 'none';
-  });
+  arrancarCatalogo();
 });
 
 // ── FECHA Y HORA ────────────────────────────────────────────
+//
+// ⚠️ La fecha viaja al backend en formato ISO ("2026-08-10T14:03:00")
+// y NO como "10/08/2026". Motivo: Google Sheets interpretaba el texto
+// según la configuración regional de la planilla y guardaba el día y
+// el mes invertidos. En pantalla se sigue mostrando dd/mm/aaaa.
 function capturarFechaHora() {
   var ahora = new Date();
   var pad   = function(n) { return n < 10 ? '0'+n : n; };
-  fechaHora = pad(ahora.getDate())    + '/' +
-              pad(ahora.getMonth()+1) + '/' +
-              ahora.getFullYear()     + ' ' +
-              pad(ahora.getHours())   + ':' +
-              pad(ahora.getMinutes());
-  document.getElementById('val-fecha').textContent = fechaHora;
+
+  fechaHora = ahora.getFullYear()       + '-' +
+              pad(ahora.getMonth() + 1) + '-' +
+              pad(ahora.getDate())      + 'T' +
+              pad(ahora.getHours())     + ':' +
+              pad(ahora.getMinutes())   + ':' +
+              pad(ahora.getSeconds());
+
+  document.getElementById('val-fecha').textContent =
+      pad(ahora.getDate())     + '/' +
+      pad(ahora.getMonth()+1)  + '/' +
+      ahora.getFullYear()      + ' ' +
+      pad(ahora.getHours())    + ':' +
+      pad(ahora.getMinutes());
+}
+
+// Pide una ubicación FRESCA y avisa cuando termina (con o sin éxito).
+// Nunca falla: si no la consigue, se queda con la última conocida.
+function obtenerGPSFresco(msMaximo) {
+  return new Promise(function(resolve) {
+    if (!navigator.geolocation) { resolve(false); return; }
+    var listo = false;
+    var cerrar = function(ok) { if (!listo) { listo = true; resolve(ok); } };
+    setTimeout(function() { cerrar(false); }, msMaximo || 8000);
+    navigator.geolocation.getCurrentPosition(
+      function(pos) {
+        gpsLat = pos.coords.latitude.toFixed(6);
+        gpsLon = pos.coords.longitude.toFixed(6);
+        var el = document.getElementById('val-gps');
+        if (el) el.textContent = gpsLat + ', ' + gpsLon;
+        cerrar(true);
+      },
+      function() { cerrar(false); },
+      { enableHighAccuracy: true, timeout: msMaximo || 8000, maximumAge: 0 }
+    );
+  });
 }
 
 // ── GPS ─────────────────────────────────────────────────────
@@ -1494,6 +1640,18 @@ function alCambiarEspacio() {
     cont.appendChild(card);
   });
 
+  // ⚠️ Fecha, hora y GPS se vuelven a tomar ACÁ, al elegir el espacio.
+  // Antes solo se tomaban al abrir la app y al terminar el relevamiento
+  // anterior: si el inspector abría la app en la oficina a las 8 y
+  // relevaba a las 11 en la plaza, quedaban guardadas las coordenadas
+  // de la oficina y la hora 8. En los datos cargados llegó a haber
+  // casi 8 horas de diferencia.
+  capturarFechaHora();
+  obtenerGPSFresco(10000);
+
+  // Un solo ID por formulario, desde que se elige el espacio
+  relevIdActual = generarRelevId();
+
   // Los botones de galería recién creados deben respetar el permiso
   aplicarPermisoGaleria();
 
@@ -1668,8 +1826,11 @@ function bloqueNotas(evalId, item) {
               '</label>';
     });
     // Opción "Otro" con campo libre
+    // ⚠️ value="" a propósito: un checkbox sin value manda "on", y
+    // getNotas() lo agregaba a las notas. Por eso hay filas cargadas
+    // que dicen "on · Otro: ...". Con value vacío deja de contarse.
     html += '<label class="opcion" for="otro-chk-' + evalId + '">' +
-              '<input type="checkbox" id="otro-chk-' + evalId + '" ' +
+              '<input type="checkbox" value="" id="otro-chk-' + evalId + '" ' +
                 'onchange="toggleOtro(\'' + evalId + '\')">' +
               '<span>Otro (completar)</span>' +
             '</label>';
@@ -1860,14 +2021,23 @@ function toggleArea(areaId) {
 //    · no operativas         → pide cuántas se solicita remover
 // ════════════════════════════════════════════════════════════
 
+// Muestra "4/6" cuando faltan unidades respecto de las provistas
+// inicialmente (columna F de EQUIPAMIENTO), y "4 unidades" cuando
+// están todas. Así el faltante salta a la vista en lugar de
+// perderse entre tarjetas todas iguales.
+function textoCantidad(eq) {
+  var prov = Number(eq.provisto) || 0;
+  if (prov > eq.cantidad) return eq.cantidad + '/' + prov;
+  return eq.cantidad + (eq.cantidad === 1 ? ' unidad' : ' unidades');
+}
+
 function crearEquipamiento(eq) {
   var id = eq.id;
   var h = '<div class="equipo-card" id="eq-card-' + id + '">';
 
   h +=   '<div class="equipo-header">' +
            '<span class="equipo-nombre">' + escaparHTML(eq.clasificacion) + '</span>' +
-           '<span class="equipo-total">' + eq.cantidad +
-             (eq.cantidad === 1 ? ' unidad' : ' unidades') + '</span>' +
+           '<span class="equipo-total">' + textoCantidad(eq) + '</span>' +
          '</div>';
 
   h +=   '<div class="equipo-cuerpo">';
@@ -1890,7 +2060,7 @@ function crearEquipamiento(eq) {
                '</label>';
   });
   h +=             '<label class="opcion" for="eqotro-chk-' + id + '">' +
-                     '<input type="checkbox" id="eqotro-chk-' + id + '" ' +
+                     '<input type="checkbox" value="" id="eqotro-chk-' + id + '" ' +
                        'onchange="toggleOtroEquipo(\'' + id + '\')">' +
                      '<span>Otro (completar)</span>' +
                    '</label>' +
@@ -2292,6 +2462,14 @@ function generarRelevId() {
          Math.floor(Math.random() * 9000 + 1000);
 }
 
+// ⚠️ El ID se genera UNA SOLA VEZ por formulario, al elegir el
+// espacio, y se guarda acá hasta que el relevamiento se envía o se
+// resetea. Antes se generaba dentro de enviarRelevamiento(), así que
+// cada vez que el inspector volvía a apretar Enviar salía un ID nuevo
+// y el backend lo tomaba como un relevamiento distinto: por eso hay
+// espacios cargados dos y tres veces el mismo día.
+var relevIdActual = null;
+
 // ── ENVIAR ───────────────────────────────────────────────────
 function enviarRelevamiento() {
   var relevador = document.getElementById('sel-relevador').value;
@@ -2477,8 +2655,25 @@ function enviarRelevamiento() {
     return;
   }
 
+  // Fecha y hora del MOMENTO DEL ENVÍO, no de cuando se abrió la app
+  capturarFechaHora();
+
+  var btn = document.getElementById('btn-enviar');
+  btn.disabled = true;
+  btn.innerHTML = '<span>📍</span> Ubicando...';
+  ocultarMsg();
+
+  // Se espera hasta 10 segundos una ubicación fresca. Si no llega,
+  // se usa la última conocida (la de cuando se eligió el espacio).
+  obtenerGPSFresco(10000).then(function() {
+    completarEnvio(relevador, sitioId, espacioId, sitio, espacio, evaluaciones, btn);
+  });
+}
+
+// Segunda mitad del envío: se ejecuta cuando terminó de buscar el GPS
+function completarEnvio(relevador, sitioId, espacioId, sitio, espacio, evaluaciones, btn) {
   var payload = {
-    relevId:              generarRelevId(),
+    relevId:              relevIdActual || generarRelevId(),
     relevador:            relevador,
     fechaHora:            fechaHora,
     latitud:              gpsLat  || 'No disponible',
@@ -2495,10 +2690,7 @@ function enviarRelevamiento() {
     evaluaciones:         evaluaciones
   };
 
-  var btn = document.getElementById('btn-enviar');
-  btn.disabled = true;
   btn.innerHTML = '<span>⏳</span> Enviando...';
-  ocultarMsg();
 
   if (!navigator.onLine) { guardarYAvisar(payload, btn); return; }
 
@@ -2570,6 +2762,7 @@ function resetFormulario() {
   FOTOS = {};
   EQUIPO = {};
   permiteGaleria = false;
+  relevIdActual = null;   // el próximo relevamiento lleva ID propio
   capturarFechaHora();
   capturarGPS();
 }
