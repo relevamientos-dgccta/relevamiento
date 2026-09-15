@@ -2023,8 +2023,8 @@ function toggleArea(areaId) {
 // perderse entre tarjetas todas iguales.
 function textoCantidad(eq) {
   var prov = Number(eq.provisto) || 0;
-  if (prov > eq.cantidad) return eq.cantidad + 'unidades operativas /' + prov + 'provistas';
-  return eq.cantidad + (eq.cantidad === 1 ? ' unidad operativa' : ' unidades operativas');
+  if (prov > eq.cantidad) return eq.cantidad + ' operativas /' + prov + ' provistas';
+  return eq.cantidad + (eq.cantidad === 1 ? ' unidad' : ' unidades');
 }
 
 function crearEquipamiento(eq) {
