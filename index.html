@@ -1618,7 +1618,8 @@ function alCambiarEspacio() {
     // No se puntúa: por cada ítem hay un bloque que solo se completa
     // si el inspector encuentra un problema o deterioro que informar.
     var infra = (DB.infraestructura || []).filter(function(f) {
-      return String(f.areaId) === String(area.id);
+      return String(f.areaId) === String(area.id) &&
+             INFRA_NO_MOSTRAR.indexOf(String(f.clasificacion).trim()) < 0;
     });
     if (infra.length > 0) {
       cuerpo += infra.map(function(f) {
@@ -1712,6 +1713,18 @@ var ITEMS_ESPACIO = [
 // Si más adelante se agregan ítems por clasificación de área, van acá.
 var ITEMS_AREA = [];
 
+// ╔══════════════════════════════════════════════════════════╗
+// ║  ✏️ ZONA EDITABLE — INFRAESTRUCTURA QUE NO SE MUESTRA      ║
+// ║                                                            ║
+// ║  Clasificaciones de la hoja INFRAESTRUCTURA que NO          ║
+// ║  generan bloque en la app, porque ya se evalúan en otro     ║
+// ║  lado y preguntarlas dos veces confunde al inspector.      ║
+// ║  Para sumar otra, agregá un renglón con su nombre.         ║
+// ╚══════════════════════════════════════════════════════════╝
+var INFRA_NO_MOSTRAR = [
+  'Césped natural'    // ya se evalúa en "Césped y jardinería" del espacio
+];
+     
 // ╔══════════════════════════════════════════════════════════╗
 // ║  ✏️ ZONA EDITABLE — CAUSAS DE DAÑO DEL EQUIPAMIENTO        ║
 // ║  Aparecen cuando se carga al menos una unidad             ║
