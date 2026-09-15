@@ -1621,10 +1621,6 @@ function alCambiarEspacio() {
       return String(f.areaId) === String(area.id);
     });
     if (infra.length > 0) {
-      cuerpo += '<div class="eval-label-linea" style="margin:14px 0 8px;">' +
-                  '<span class="eval-label">Infraestructura</span>' +
-                  '<span class="tag-informativo">Solo si hay problema</span>' +
-                '</div>';
       cuerpo += infra.map(function(f) {
         return crearEvaluacion('inf-' + f.id, itemInfraestructura(f));
       }).join('');
