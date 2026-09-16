@@ -1724,13 +1724,13 @@ var ITEMS_AREA = [];
 // ║                                                            ║
 // ║  Clasificaciones de la hoja INFRAESTRUCTURA que NO          ║
 // ║  generan bloque en la app, porque ya se evalúan en otro     ║
-// ║  lado y preguntarlas dos veces confunde al inspector.      ║
-// ║  Para sumar otra, agregá un renglón con su nombre.         ║
+// ║  lado. Para sumar otra, agregá un renglón con el nombre     ║
+// ║  escrito EXACTAMENTE igual que en la planilla.              ║
 // ╚══════════════════════════════════════════════════════════╝
 var INFRA_NO_MOSTRAR = [
   'Césped natural'    // ya se evalúa en "Césped y jardinería" del espacio
 ];
-     
+
 // ╔══════════════════════════════════════════════════════════╗
 // ║  ✏️ ZONA EDITABLE — CAUSAS DE DAÑO DEL EQUIPAMIENTO        ║
 // ║  Aparecen cuando se carga al menos una unidad             ║
@@ -2044,7 +2044,9 @@ function textoCantidad(id) {
   var e    = EQUIPO[id] || { sin: 0, con: 0, no: 0, ret: 0 };
   var eq   = buscarEquipo(id);
   var prov = eq ? (Number(eq.provisto) || 0) : 0;
-  return (e.sin + e.con + e.no) + '/' + prov;
+  // ✏️ Si querés el formato corto, cambiá esta línea por:
+  //    return (e.sin + e.con + e.no) + '/' + prov;
+  return (e.sin + e.con + e.no) + ' presentes / ' + prov + ' provistas';
 }
 
 function crearEquipamiento(eq) {
@@ -2059,6 +2061,7 @@ function crearEquipamiento(eq) {
   h +=   '<div class="equipo-cuerpo">';
   h +=     filaConteo(id, 'sin', 'punto-ok',   'Operativo (sin daños)');
   h +=     filaConteo(id, 'con', 'punto-dano', 'Operativo (con daños)');
+  h +=     filaConteo(id, 'no',  'punto-no',   'No operativo');
   h +=     filaConteo(id, 'ret', 'punto-ret',  'Retirado (ya no está)', true);
   h +=     '<div class="equipo-suma" id="eq-suma-' + id + '"></div>';
 
