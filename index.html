@@ -490,6 +490,12 @@
   .punto-ok   { background: var(--bien-borde); }
   .punto-dano { background: var(--reg-borde); }
   .punto-no   { background: var(--mal-borde); }
+  .punto-ret  { background: #BDBDBD; }
+
+  /* Fila de retirados: atenuada, para que se lea como "esto ya no está" */
+  .conteo-fila.retirada { background: #FAFAFA; }
+  .conteo-fila.retirada .conteo-etiqueta { color: var(--gris-muted); }
+  .conteo-fila.retirada .contador input { color: var(--gris-muted); }
 
   .contador { display: flex; align-items: center; gap: 0; flex-shrink: 0; }
   .contador button {
@@ -876,7 +882,7 @@
 <!-- ✏️ SUBÍ ESTE NÚMERO CADA VEZ QUE ACTUALICES EL ARCHIVO.
      Sirve para saber desde el celular si estás viendo la versión
      nueva o una guardada en caché por el navegador. -->
-<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios &middot; v0.14</div>
+<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios &middot; v0.15</div>
 
 <!-- MODAL DE AYUDA -->
 <div class="modal-fondo" id="modal-ayuda" onclick="cerrarAyudaFondo(event)">
@@ -2029,14 +2035,16 @@ function toggleArea(areaId) {
 //    · no operativas         → pide cuántas se solicita remover
 // ════════════════════════════════════════════════════════════
 
-// Muestra "4/6" cuando faltan unidades respecto de las provistas
-// inicialmente (columna F de EQUIPAMIENTO), y "4 unidades" cuando
-// están todas. Así el faltante salta a la vista en lugar de
-// perderse entre tarjetas todas iguales.
-function textoCantidad(eq) {
-  var prov = Number(eq.provisto) || 0;
-  if (prov > eq.cantidad) return eq.cantidad + ' operativas / ' + prov + ' provistas';
-  return eq.cantidad + (eq.cantidad === 1 ? ' unidad' : ' unidades');
+// Insignia de la tarjeta: PRESENTES / PROVISTAS.
+// Presentes = sin daños + con daños + no operativas. Las retiradas
+// NO suman, porque ya no están en el área.
+// Se actualiza sola cada vez que el inspector mueve un contador
+// (ver refrescarEquipo).
+function textoCantidad(id) {
+  var e    = EQUIPO[id] || { sin: 0, con: 0, no: 0, ret: 0 };
+  var eq   = buscarEquipo(id);
+  var prov = eq ? (Number(eq.provisto) || 0) : 0;
+  return (e.sin + e.con + e.no) + '/' + prov;
 }
 
 function crearEquipamiento(eq) {
@@ -2045,13 +2053,13 @@ function crearEquipamiento(eq) {
 
   h +=   '<div class="equipo-header">' +
            '<span class="equipo-nombre">' + escaparHTML(eq.clasificacion) + '</span>' +
-           '<span class="equipo-total">' + textoCantidad(eq) + '</span>' +
+           '<span class="equipo-total" id="eq-tot-' + id + '"></span>' +
          '</div>';
 
   h +=   '<div class="equipo-cuerpo">';
   h +=     filaConteo(id, 'sin', 'punto-ok',   'Operativo (sin daños)');
   h +=     filaConteo(id, 'con', 'punto-dano', 'Operativo (con daños)');
-  h +=     filaConteo(id, 'no',  'punto-no',   'No operativo');
+  h +=     filaConteo(id, 'ret', 'punto-ret',  'Retirado (ya no está)', true);
   h +=     '<div class="equipo-suma" id="eq-suma-' + id + '"></div>';
 
   // Causas de daño (aparecen si "con daños" > 0)
@@ -2103,8 +2111,8 @@ function crearEquipamiento(eq) {
   return h;
 }
 
-function filaConteo(id, clave, punto, etiqueta) {
-  return '<div class="conteo-fila">' +
+function filaConteo(id, clave, punto, etiqueta, atenuada) {
+  return '<div class="conteo-fila' + (atenuada ? ' retirada' : '') + '">' +
            '<span class="conteo-etiqueta">' +
              '<span class="punto-estado ' + punto + '"></span>' + etiqueta +
            '</span>' +
@@ -2129,15 +2137,16 @@ function ajustarConteo(id, clave, delta) {
 }
 
 function setConteo(id, clave, valor) {
-  if (!EQUIPO[id]) EQUIPO[id] = { sin: 0, con: 0, no: 0, rem: 0 };
+  if (!EQUIPO[id]) EQUIPO[id] = { sin: 0, con: 0, no: 0, rem: 0, ret: 0 };
   var n = parseInt(valor, 10);
   if (isNaN(n) || n < 0) n = 0;
 
   var eq = buscarEquipo(id);
-  var tope = eq ? eq.cantidad : 99;
-
-  // Cada estado no puede superar el total previsto;
-  // la remoción no puede superar las no operativas.
+  // El tope de cada estado es la cantidad PROVISTA (columna F),
+  // que no cambia nunca. La remoción sigue topeada por las no
+  // operativas, porque solo se puede pedir retirar lo que está roto
+  // y todavía está físicamente en el área.
+  var tope = eq ? (Number(eq.provisto) || 0) : 99;
   if (clave === 'rem') tope = EQUIPO[id].no;
   if (n > tope) n = tope;
 
@@ -2161,10 +2170,15 @@ function buscarEquipo(id) {
 
 // Actualiza la suma, los bloques desplegables y los topes
 function refrescarEquipo(id) {
-  var e   = EQUIPO[id] || { sin: 0, con: 0, no: 0, rem: 0 };
+  var e   = EQUIPO[id] || { sin: 0, con: 0, no: 0, rem: 0, ret: 0 };
   var eq  = buscarEquipo(id);
-  var tot = eq ? eq.cantidad : 0;
-  var suma = e.sin + e.con + e.no;
+  var tot = eq ? (Number(eq.provisto) || 0) : 0;   // columna F
+  // Los CUATRO contadores tienen que cerrar contra las provistas
+  var suma = e.sin + e.con + e.no + (e.ret || 0);
+
+  // Insignia: presentes / provistas (las retiradas no cuentan)
+  var elTot = document.getElementById('eq-tot-' + id);
+  if (elTot) elTot.textContent = textoCantidad(id);
 
   var elSuma = document.getElementById('eq-suma-' + id);
   if (elSuma) {
@@ -2196,7 +2210,7 @@ function refrescarEquipo(id) {
   if ((e.con + e.no) === 0)  limpiarObsEquipo(id);
 
   // Deshabilitar el "−" cuando ya está en cero
-  ['sin','con','no','rem'].forEach(function(k) {
+  ['sin','con','no','rem','ret'].forEach(function(k) {
     var inp = document.getElementById('cnt-' + id + '-' + k);
     if (!inp) return;
     var menos = inp.previousElementSibling;
@@ -2260,9 +2274,9 @@ function getNotasEquipo(id) {
 }
 
 // ── PRECARGA CON LOS ÚLTIMOS VALORES ─────────────────────────
-// Pide al backend los conteos de la visita anterior. Si no hay
-// (primera visita o sin señal), precarga todo como operativo
-// sin daños según la cantidad de la planilla.
+// Pide al backend el estado que dejó la visita anterior. Si no hay
+// (equipamiento nuevo o sin señal), precarga todas las unidades
+// PROVISTAS como operativas sin daños.
 function precargarEquipamiento(espacioId, areas) {
   var ids = [];
   areas.forEach(function(a) {
@@ -2272,10 +2286,12 @@ function precargarEquipamiento(espacioId, areas) {
   });
   if (ids.length === 0) return;
 
-  // Valor por defecto: todo operativo sin daños
+  // Valor por defecto (equipamiento nuevo, sin visitas previas):
+  // todas las provistas operativas y sin daños.
   ids.forEach(function(id) {
     var eq = buscarEquipo(id);
-    EQUIPO[id] = { sin: eq ? eq.cantidad : 0, con: 0, no: 0, rem: 0 };
+    EQUIPO[id] = { sin: eq ? (Number(eq.provisto) || 0) : 0,
+                   con: 0, no: 0, rem: 0, ret: 0 };
     aplicarValores(id);
   });
 
@@ -2288,14 +2304,16 @@ function precargarEquipamiento(espacioId, areas) {
         var u = res.ultimos[id];
         if (!u) return;
         var eq   = buscarEquipo(id);
-        var tot  = eq ? eq.cantidad : 0;
-        var suma = (u.opSinDanos || 0) + (u.opConDanos || 0) + (u.noOperativo || 0);
-        // Solo se precarga si lo anterior cuadra con el total actual
+        var tot  = eq ? (Number(eq.provisto) || 0) : 0;
+        var suma = (u.opSinDanos || 0) + (u.opConDanos || 0) +
+                   (u.noOperativo || 0) + (u.retirado || 0);
+        // Solo se precarga si lo anterior cierra contra las provistas
         if (suma !== tot) return;
         EQUIPO[id] = {
           sin: u.opSinDanos  || 0,
           con: u.opConDanos  || 0,
           no:  u.noOperativo || 0,
+          ret: u.retirado    || 0,
           rem: 0
         };
         aplicarValores(id);
@@ -2306,7 +2324,7 @@ function precargarEquipamiento(espacioId, areas) {
 
 function aplicarValores(id) {
   var e = EQUIPO[id];
-  ['sin','con','no','rem'].forEach(function(k) {
+  ['sin','con','no','rem','ret'].forEach(function(k) {
     var inp = document.getElementById('cnt-' + id + '-' + k);
     if (inp) inp.value = e[k];
   });
@@ -2579,11 +2597,12 @@ function enviarRelevamiento() {
     (DB.equipamiento || [])
       .filter(function(e) { return String(e.areaId) === String(area.id); })
       .forEach(function(eq) {
-        var e = EQUIPO[eq.id] || { sin: 0, con: 0, no: 0, rem: 0 };
-        var suma = e.sin + e.con + e.no;
+        var e = EQUIPO[eq.id] || { sin: 0, con: 0, no: 0, rem: 0, ret: 0 };
+        var suma = e.sin + e.con + e.no + (e.ret || 0);
+        var prov = Number(eq.provisto) || 0;
 
-        // Los tres conteos deben sumar el total previsto
-        if (suma !== eq.cantidad) {
+        // Los CUATRO conteos deben cerrar contra las provistas (columna F)
+        if (suma !== prov) {
           faltantes.push({ evalId: 'eq-' + eq.id, tipoFalta: 'suma', areaId: area.id });
           return;
         }
@@ -2596,7 +2615,8 @@ function enviarRelevamiento() {
         }
 
         // Resumen legible para la columna Estado
-        var resumen = e.sin + ' operativas · ' + e.con + ' con daños · ' + e.no + ' no operativas';
+        var resumen = e.sin + ' operativas · ' + e.con + ' con daños · ' +
+                      e.no + ' no operativas · ' + (e.ret || 0) + ' retiradas';
         var notas = [causas, getNotasEquipo(eq.id)].filter(function(x) { return x; }).join(' | ');
 
         evaluaciones.push({
@@ -2608,11 +2628,12 @@ function enviarRelevamiento() {
           notas:       notas,
           fotos:       getFotos('eq-' + eq.id),
           equipoId:    eq.id,
-          cantTotal:   eq.cantidad,
+          cantTotal:   prov,
           opSinDanos:  e.sin,
           opConDanos:  e.con,
           noOperativo: e.no,
-          remocion:    e.rem
+          remocion:    e.rem,
+          retirado:    e.ret || 0
         });
       });
   });
@@ -2643,8 +2664,8 @@ function enviarRelevamiento() {
     var msg;
     if (sumas === faltantes.length) {
       msg = sumas === 1
-        ? 'En 1 equipamiento las cantidades no suman el total previsto.'
-        : 'En ' + sumas + ' equipamientos las cantidades no suman el total previsto.';
+        ? 'En 1 equipamiento las cantidades no suman las unidades provistas.'
+        : 'En ' + sumas + ' equipamientos las cantidades no suman las unidades provistas.';
     } else if (caus === faltantes.length) {
       msg = caus === 1
         ? 'Falta indicar los daños de 1 equipamiento.'
