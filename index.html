@@ -541,6 +541,16 @@
     border: 1px solid var(--gris-borde);
   }
   .equipo-extra.visible { display: block; }
+
+  /* Bloques que se despliegan JUSTO DEBAJO de su contador.
+     Llevan una barra del mismo color que el punto del renglón, para
+     que se vea de un vistazo a qué pregunta están respondiendo. */
+  .equipo-extra.bajo-contador {
+    margin-top: 0; margin-bottom: 10px;
+    border-left: 3px solid var(--gris-borde);
+  }
+  .equipo-extra.de-danos { border-left-color: var(--reg-borde); }
+  .equipo-extra.de-noop  { border-left-color: var(--mal-borde); }
   .equipo-extra.falta-nota { outline: 2px solid var(--mal-borde); outline-offset: 2px; }
   .equipo-extra .mini-label {
     font-size: 10px; font-weight: 700;
@@ -882,7 +892,7 @@
 <!-- ✏️ SUBÍ ESTE NÚMERO CADA VEZ QUE ACTUALICES EL ARCHIVO.
      Sirve para saber desde el celular si estás viendo la versión
      nueva o una guardada en caché por el navegador. -->
-<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios &middot; v0.15</div>
+<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios &middot; v0.16</div>
 
 <!-- MODAL DE AYUDA -->
 <div class="modal-fondo" id="modal-ayuda" onclick="cerrarAyudaFondo(event)">
@@ -2059,14 +2069,16 @@ function crearEquipamiento(eq) {
          '</div>';
 
   h +=   '<div class="equipo-cuerpo">';
-  h +=     filaConteo(id, 'sin', 'punto-ok',   'Operativo (sin daños)');
-  h +=     filaConteo(id, 'con', 'punto-dano', 'Operativo (con daños)');
-  h +=     filaConteo(id, 'no',  'punto-no',   'No operativo');
-  h +=     filaConteo(id, 'ret', 'punto-ret',  'Retirado (ya no está)', true);
-  h +=     '<div class="equipo-suma" id="eq-suma-' + id + '"></div>';
 
-  // Causas de daño (aparecen si "con daños" > 0)
-  h +=     '<div class="equipo-extra" id="eq-causas-' + id + '">' +
+  // ⚠️ ORDEN DE LA TARJETA. Cada bloque que se despliega va INMEDIATAMENTE
+  // DEBAJO del contador que lo dispara, no al final. Antes estaban todos
+  // juntos abajo de la suma y el inspector no sabía a qué renglón
+  // respondía cada pregunta.
+  h +=     filaConteo(id, 'sin', 'punto-ok',   'Operativo (sin daños)');
+
+  h +=     filaConteo(id, 'con', 'punto-dano', 'Operativo (con daños)');
+  // ↑ las causas de daño se abren acá, pegadas a "con daños"
+  h +=     '<div class="equipo-extra bajo-contador de-danos" id="eq-causas-' + id + '">' +
              '<label class="mini-label">Daños detectados ' +
                '<span class="aclara">(marcá al menos uno)</span></label>' +
              '<div class="opciones" id="eq-ops-' + id + '">';
@@ -2089,15 +2101,20 @@ function crearEquipamiento(eq) {
                'oninput="limpiarAvisoEquipo(\'' + id + '\')"></textarea>' +
            '</div>';
 
-  // Remoción (aparece si "no operativo" > 0)
-  h +=     '<div class="equipo-extra" id="eq-remo-' + id + '">' +
+  h +=     filaConteo(id, 'no',  'punto-no',   'No operativo');
+  // ↑ la remoción se abre acá, pegada a "no operativo"
+  h +=     '<div class="equipo-extra bajo-contador de-noop" id="eq-remo-' + id + '">' +
              '<div class="conteo-fila" style="border:none;padding:0;">' +
                '<span class="conteo-etiqueta">¿De cuántas se solicita la remoción?</span>' +
                contadorHTML(id, 'rem') +
              '</div>' +
            '</div>';
 
-  // Notas y fotos (aparecen si hay daños o unidades no operativas)
+  h +=     filaConteo(id, 'ret', 'punto-ret',  'Retirado (ya no está)', true);
+  h +=     '<div class="equipo-suma" id="eq-suma-' + id + '"></div>';
+
+  // Observaciones y fotos: van al final porque aplican a todo el
+  // equipamiento, no a un renglón en particular.
   h +=     '<div class="equipo-extra" id="eq-obs-' + id + '">' +
              '<label class="mini-label">Observaciones ' +
                '<span class="aclara">(opcional)</span></label>' +
@@ -2108,7 +2125,6 @@ function crearEquipamiento(eq) {
                '<div class="fotos-grilla" id="grilla-eq-' + id + '"></div>' +
              '</div>' +
            '</div>';
-
   h +=   '</div>';
   h += '</div>';
   return h;
