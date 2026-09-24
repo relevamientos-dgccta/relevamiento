@@ -391,6 +391,22 @@
     margin-bottom: 9px;
   }
 
+  /* ── MEDIDA AFECTADA (reportes de infraestructura) ── */
+  .medida-fila { display: flex; gap: 6px; margin-bottom: 10px; }
+  .medida-fila input {
+    flex: 1; min-width: 0;
+    padding: 9px 10px;
+    border: 1.5px solid var(--gris-borde);
+    border-radius: var(--radio);
+    font-size: 16px; font-family: var(--font);
+    color: var(--gris-texto); background: var(--blanco);
+  }
+  .medida-fila select { width: 96px; flex-shrink: 0; padding: 9px 10px; }
+  .medida-fila input:focus {
+    outline: none; border-color: var(--amarillo);
+    box-shadow: 0 0 0 3px rgba(255,210,0,.2);
+  }
+
   /* ── AVISO DE NOTA FALTANTE ── */
   .eval-detalle.falta-nota {
     outline: 2px solid var(--mal-borde);
@@ -678,6 +694,29 @@
   .msg.error { background: var(--mal-bg);  color: var(--mal-txt);  border-left: 4px solid var(--mal-borde); }
   .msg.visible { display: block; }
 
+  /* ── CARTEL DURANTE EL ENVÍO ── */
+  #envio-en-curso {
+    display: none;
+    position: fixed; inset: 0; z-index: 900;
+    background: rgba(29,51,67,.94);
+    flex-direction: column; align-items: center; justify-content: center;
+    gap: 10px; padding: 0 28px; text-align: center;
+  }
+  #envio-en-curso.visible { display: flex; }
+  #envio-en-curso .envio-titulo {
+    font-family: var(--font-titulos);
+    font-size: 18px; font-weight: 700; color: var(--blanco);
+  }
+  #envio-en-curso .envio-aviso {
+    font-size: 15px; font-weight: 700; line-height: 1.45;
+    color: var(--azul-oscuro); background: var(--amarillo);
+    border-radius: var(--radio); padding: 12px 14px; margin-top: 6px;
+    max-width: 340px;
+  }
+  #envio-en-curso .envio-detalle {
+    font-size: 12px; color: var(--blanco); opacity: .75; line-height: 1.5;
+  }
+
   /* ── PANTALLA DE CARGA ── */
   #pantalla-carga {
     position: fixed; inset: 0; background: var(--azul-oscuro);
@@ -892,7 +931,15 @@
 <!-- ✏️ SUBÍ ESTE NÚMERO CADA VEZ QUE ACTUALICES EL ARCHIVO.
      Sirve para saber desde el celular si estás viendo la versión
      nueva o una guardada en caché por el navegador. -->
-<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios &middot; v0.16</div>
+<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios &middot; v0.21</div>
+
+<!-- CARTEL DURANTE EL ENVÍO -->
+<div id="envio-en-curso" role="alertdialog" aria-live="assertive">
+  <div class="spinner"></div>
+  <div class="envio-titulo" id="envio-titulo">Enviando relevamiento…</div>
+  <div class="envio-aviso">📵 No bloquees el celular ni cambies de aplicación hasta que termine.</div>
+  <div class="envio-detalle" id="envio-detalle"></div>
+</div>
 
 <!-- MODAL DE AYUDA -->
 <div class="modal-fondo" id="modal-ayuda" onclick="cerrarAyudaFondo(event)">
@@ -1643,6 +1690,9 @@ function alCambiarEspacio() {
       }).join('');
     }
 
+    // ── Otro reporte: siempre al final del área ──
+    cuerpo += crearEvaluacion('otro-' + area.id, ITEM_OTRO_AREA);
+
     card.innerHTML =
       '<div class="area-header" onclick="toggleArea(\'' + area.id + '\')">' +
         '<span class="area-icono">' + icono + '</span>' +
@@ -1742,6 +1792,17 @@ var INFRA_NO_MOSTRAR = [
 ];
 
 // ╔══════════════════════════════════════════════════════════╗
+// ║  ✏️ ZONA EDITABLE — OTRO REPORTE AL PIE DE CADA ÁREA       ║
+// ║  Para lo que no entra en equipamiento ni infraestructura.  ║
+// ║  En DETALLE queda con nivel "Área" y el ítem = label.      ║
+// ╚══════════════════════════════════════════════════════════╝
+var ITEM_OTRO_AREA = {
+  id: 'otroReporte', label: 'Otro reporte que informar', tipo: 'reporte',
+  ayudaCorta: 'Usalo para cualquier problema que no entre en las categorías de arriba. ' +
+              'Indicá en las notas qué es y en qué parte del área está.'
+};
+
+// ╔══════════════════════════════════════════════════════════╗
 // ║  ✏️ ZONA EDITABLE — CAUSAS DE DAÑO DEL EQUIPAMIENTO        ║
 // ║  Aparecen cuando se carga al menos una unidad             ║
 // ║  "operativa con daños". Se puede marcar más de una.       ║
@@ -1756,8 +1817,26 @@ var CAUSAS_DANO = [
   'Madera astillada o deteriorada'
 ];
 
-// Estado en memoria de cada equipamiento: EQUIPO[eqId] = {sin, con, no, rem}
+// ╔══════════════════════════════════════════════════════════╗
+// ║  ✏️ ZONA EDITABLE — RUBROS DE LAS UNIDADES CON DAÑOS       ║
+// ║  Las unidades "operativas con daños" se reparten entre     ║
+// ║  estos dos rubros y la suma tiene que dar el total con     ║
+// ║  daños. Cambiá solo el texto entre comillas.               ║
+// ╚══════════════════════════════════════════════════════════╝
+var RUBROS = {
+  A: 'Rubro A',
+  B: 'Rubro B'
+};
+
+// Estado en memoria de cada equipamiento:
+// EQUIPO[eqId] = {sin, con, no, ret, rep, ra, rb}
+//   rep     → de las no operativas, cuántas se pide reponer
+//   ra / rb → de las con daños, cuántas son de rubro A / rubro B
 var EQUIPO = {};
+
+function equipoVacio() {
+  return { sin: 0, con: 0, no: 0, ret: 0, rep: 0, ra: 0, rb: 0 };
+}
 
 var ITEM_COOP = {
   id: 'coopSeguridad', label: 'Elementos de seguridad y vestimenta',
@@ -1769,14 +1848,23 @@ var ITEM_COOP = {
 // piso antigolpes...) genera un bloque del tipo "reporte": no se
 // puntúa, solo se informa si hay un problema, con notas y fotos.
 // Si la planilla tiene la medida cargada, se muestra al lado.
+//
+// Todo reporte de infraestructura pide además la superficie o
+// longitud afectada (obligatoria). Si la columna E de la planilla
+// dice "m" o "m²", esa unidad viene preseleccionada.
 function itemInfraestructura(f) {
   var medida = String(f.medida || '').trim();
+  var m = medida.toLowerCase().replace(/\s/g, '');
+  var unidad = (m === 'm²' || m === 'm2') ? 'm²' : (m === 'm' ? 'm' : '');
   return {
     id:    f.id,
     label: f.clasificacion + (medida ? ' (' + medida + ')' : ''),
     tipo:  'reporte',
+    pideMedida:    true,
+    unidadDefecto: unidad,
     ayudaCorta: 'Informá solo si encontrás un deterioro o problema. ' +
-                'Indicá en las notas cuál es y en qué parte del área está.'
+                'Indicá cuánto está afectado y, en las notas, cuál es el problema ' +
+                'y en qué parte del área está.'
   };
 }
 
@@ -1807,7 +1895,7 @@ function crearEscala(evalId, item) {
       '</div>' +
       '<div class="eval-detalle" id="det-' + evalId + '">' +
         bloqueNotas(evalId, item) +
-        bloqueFotos(evalId, item, false) +
+        bloqueFotos(evalId) +
       '</div>' +
     '</div>';
 }
@@ -1824,10 +1912,43 @@ function crearReporteProblema(evalId, item) {
         'onclick="toggleReporteProblema(\'' + evalId + '\')">⚠️ Informar problema</button>' +
       '<div class="eval-detalle" id="det-' + evalId + '">' +
         (item.ayudaCorta ? '<p class="ayuda-corta">' + item.ayudaCorta + '</p>' : '') +
+        (item.pideMedida ? bloqueMedida(evalId, item) : '') +
         bloqueNotas(evalId, item) +
-        bloqueFotos(evalId, item, true) +
+        bloqueFotos(evalId) +
       '</div>' +
     '</div>';
+}
+
+// Superficie o longitud afectada: número + unidad, ambos obligatorios
+function bloqueMedida(evalId, item) {
+  var def = item.unidadDefecto || '';
+  var opcion = function(u, texto) {
+    return '<option value="' + u + '"' + (u === def ? ' selected' : '') + '>' + texto + '</option>';
+  };
+  return '' +
+    '<label class="mini-label">Superficie o longitud afectada ' +
+      '<span class="aclara">(obligatorio)</span></label>' +
+    '<div class="medida-fila">' +
+      // type="text" y no "number": con teclado en español algunos Android
+      // rechazan la coma decimal y el campo llega vacío.
+      '<input type="text" inputmode="decimal" autocomplete="off" ' +
+        'id="med-' + evalId + '" placeholder="Ej: 12,5" ' +
+        'oninput="marcarOpcion(\'' + evalId + '\')">' +
+      '<select id="uni-' + evalId + '" data-defecto="' + def + '" ' +
+        'onchange="marcarOpcion(\'' + evalId + '\')">' +
+        opcion('', 'Unidad') + opcion('m²', 'm²') + opcion('m', 'm') +
+      '</select>' +
+    '</div>';
+}
+
+// Devuelve { valor, unidad } o null si falta alguno de los dos
+function getMedida(evalId) {
+  var inp = document.getElementById('med-' + evalId);
+  var sel = document.getElementById('uni-' + evalId);
+  if (!inp || !sel) return null;
+  var n = parseFloat(String(inp.value).replace(',', '.'));
+  if (isNaN(n) || n <= 0 || !sel.value) return null;
+  return { valor: n, unidad: sel.value };
 }
 
 // Notas: con opciones marcables si el ítem las define
@@ -1870,11 +1991,11 @@ function bloqueNotas(evalId, item) {
   return html;
 }
 
-// Fotos: una sola o varias según el ítem
-function bloqueFotos(evalId, item, multiple) {
+// Fotos: todas las evaluaciones admiten hasta MAX_FOTOS
+function bloqueFotos(evalId) {
   return '' +
     '<div class="foto-zona" id="fz-' + evalId + '">' +
-      botonesFoto(evalId, multiple) +
+      botonesFoto(evalId) +
       '<div class="fotos-grilla" id="grilla-' + evalId + '"></div>' +
     '</div>';
 }
@@ -1883,19 +2004,16 @@ function bloqueFotos(evalId, item, multiple) {
 // El botón de cámara (con "capture") lo ve todo el mundo.
 // El de galería solo aparece si el relevador está habilitado en
 // la columna B de la hoja RELEVADORES. Ver aplicarPermisoGaleria().
-function botonesFoto(evalId, multiple) {
-  var attrMultiple = multiple ? ' multiple' : '';
-  var textoCam = multiple ? '📸 Sacar fotos'      : '📸 Sacar foto';
-  var textoGal = multiple ? '🖼️ Adjuntar fotos'  : '🖼️ Adjuntar foto';
+function botonesFoto(evalId) {
   return '' +
     '<div class="foto-botones">' +
-      '<label class="foto-btn-label" for="file-' + evalId + '">' + textoCam + '</label>' +
+      '<label class="foto-btn-label" for="file-' + evalId + '">📸 Sacar fotos</label>' +
       '<input type="file" class="input-foto" id="file-' + evalId + '" accept="image/*" ' +
-        'capture="environment"' + attrMultiple +
+        'capture="environment" multiple' +
         ' onchange="agregarFotos(this,\'' + evalId + '\')">' +
-      '<label class="foto-btn-label btn-galeria" for="filegal-' + evalId + '">' + textoGal + '</label>' +
-      '<input type="file" class="input-foto" id="filegal-' + evalId + '" accept="image/*"' +
-        attrMultiple + ' onchange="agregarFotos(this,\'' + evalId + '\')">' +
+      '<label class="foto-btn-label btn-galeria" for="filegal-' + evalId + '">🖼️ Adjuntar fotos</label>' +
+      '<input type="file" class="input-foto" id="filegal-' + evalId + '" accept="image/*" multiple' +
+        ' onchange="agregarFotos(this,\'' + evalId + '\')">' +
     '</div>';
 }
 
@@ -1998,6 +2116,10 @@ function limpiarDetalle(evalId) {
   if (txt) { txt.value = ''; txt.classList.remove('visible'); }
   var ops = document.getElementById('ops-' + evalId);
   if (ops) ops.querySelectorAll('input[type=checkbox]').forEach(function(ch) { ch.checked = false; });
+  var med = document.getElementById('med-' + evalId);
+  if (med) med.value = '';
+  var uni = document.getElementById('uni-' + evalId);
+  if (uni) uni.value = uni.getAttribute('data-defecto') || '';
   limpiarFotos(evalId);
 }
 
@@ -2079,6 +2201,18 @@ function crearEquipamiento(eq) {
   h +=     filaConteo(id, 'con', 'punto-dano', 'Operativo (con daños)');
   // ↑ las causas de daño se abren acá, pegadas a "con daños"
   h +=     '<div class="equipo-extra bajo-contador de-danos" id="eq-causas-' + id + '">' +
+             // Rubros: las unidades con daños se reparten entre A y B
+             '<label class="mini-label">¿Cuántas corresponden a cada rubro? ' +
+               '<span class="aclara">(tienen que sumar las con daños)</span></label>' +
+             '<div class="conteo-fila">' +
+               '<span class="conteo-etiqueta">' + escaparHTML(RUBROS.A) + '</span>' +
+               contadorHTML(id, 'ra') +
+             '</div>' +
+             '<div class="conteo-fila">' +
+               '<span class="conteo-etiqueta">' + escaparHTML(RUBROS.B) + '</span>' +
+               contadorHTML(id, 'rb') +
+             '</div>' +
+             '<div class="equipo-suma" id="eq-rub-suma-' + id + '" style="margin-bottom:10px;"></div>' +
              '<label class="mini-label">Daños detectados ' +
                '<span class="aclara">(marcá al menos uno)</span></label>' +
              '<div class="opciones" id="eq-ops-' + id + '">';
@@ -2101,12 +2235,14 @@ function crearEquipamiento(eq) {
                'oninput="limpiarAvisoEquipo(\'' + id + '\')"></textarea>' +
            '</div>';
 
-  h +=     filaConteo(id, 'no',  'punto-no',   'No operativo (solicitar remoción)');
-  // ↑ la remoción se abre acá, pegada a "no operativo"
-  h +=     '<div class="equipo-extra bajo-contador de-noop" id="eq-remo-' + id + '">' +
+  // La remoción de las no operativas es automática; lo que se
+  // pregunta es si además hay que reponer el elemento.
+  h +=     filaConteo(id, 'no',  'punto-no',   'No operativo (se solicita remoción)');
+  // ↑ la reposición se abre acá, pegada a "no operativo"
+  h +=     '<div class="equipo-extra bajo-contador de-noop" id="eq-repo-' + id + '">' +
              '<div class="conteo-fila" style="border:none;padding:0;">' +
-               '<span class="conteo-etiqueta">¿De cuántas se solicita la remoción?</span>' +
-               contadorHTML(id, 'rem') +
+               '<span class="conteo-etiqueta">¿De cuántas se solicita reposición del elemento?</span>' +
+               contadorHTML(id, 'rep') +
              '</div>' +
            '</div>';
 
@@ -2121,7 +2257,7 @@ function crearEquipamiento(eq) {
              '<textarea id="notas-eq-' + id + '" rows="2" ' +
                'placeholder="Ubicación dentro del área, detalles..."></textarea>' +
              '<div class="foto-zona visible" id="fz-eq-' + id + '" style="margin-top:9px;">' +
-               botonesFoto('eq-' + id, true) +
+               botonesFoto('eq-' + id) +
                '<div class="fotos-grilla" id="grilla-eq-' + id + '"></div>' +
              '</div>' +
            '</div>';
@@ -2156,31 +2292,43 @@ function ajustarConteo(id, clave, delta) {
 }
 
 function setConteo(id, clave, valor) {
-  if (!EQUIPO[id]) EQUIPO[id] = { sin: 0, con: 0, no: 0, rem: 0, ret: 0 };
+  if (!EQUIPO[id]) EQUIPO[id] = equipoVacio();
+  var e = EQUIPO[id];
   var n = parseInt(valor, 10);
   if (isNaN(n) || n < 0) n = 0;
 
   var eq = buscarEquipo(id);
   // El tope de cada estado es la cantidad PROVISTA (columna F),
-  // que no cambia nunca. La remoción sigue topeada por las no
-  // operativas, porque solo se puede pedir retirar lo que está roto
-  // y todavía está físicamente en el área.
+  // que no cambia nunca. La reposición está topeada por las no
+  // operativas, y cada rubro por las con daños que el otro rubro
+  // todavía no tomó.
   var tope = eq ? (Number(eq.provisto) || 0) : 99;
-  if (clave === 'rem') tope = EQUIPO[id].no;
+  if (clave === 'rep') tope = e.no;
+  if (clave === 'ra')  tope = e.con - (e.rb || 0);
+  if (clave === 'rb')  tope = e.con - (e.ra || 0);
   if (n > tope) n = tope;
 
-  EQUIPO[id][clave] = n;
+  e[clave] = n;
   var inp = document.getElementById('cnt-' + id + '-' + clave);
   if (inp) inp.value = n;
 
-  // Si bajan las no operativas, la remoción se recorta sola
-  if (clave === 'no' && EQUIPO[id].rem > n) {
-    EQUIPO[id].rem = n;
-    var inpRem = document.getElementById('cnt-' + id + '-rem');
-    if (inpRem) inpRem.value = n;
+  // Si bajan las no operativas, la reposición se recorta sola
+  if (clave === 'no' && e.rep > n) fijarConteo(id, 'rep', n);
+
+  // Si bajan las con daños, los rubros se recortan solos (primero B)
+  if (clave === 'con') {
+    if ((e.ra || 0) + (e.rb || 0) > n) fijarConteo(id, 'rb', Math.max(n - (e.ra || 0), 0));
+    if ((e.ra || 0) > n)               fijarConteo(id, 'ra', n);
   }
 
   refrescarEquipo(id);
+}
+
+// Escribe un valor en memoria y en pantalla sin pasar por los topes
+function fijarConteo(id, clave, n) {
+  EQUIPO[id][clave] = n;
+  var inp = document.getElementById('cnt-' + id + '-' + clave);
+  if (inp) inp.value = n;
 }
 
 function buscarEquipo(id) {
@@ -2189,7 +2337,7 @@ function buscarEquipo(id) {
 
 // Actualiza la suma, los bloques desplegables y los topes
 function refrescarEquipo(id) {
-  var e   = EQUIPO[id] || { sin: 0, con: 0, no: 0, rem: 0, ret: 0 };
+  var e   = EQUIPO[id] || equipoVacio();
   var eq  = buscarEquipo(id);
   var tot = eq ? (Number(eq.provisto) || 0) : 0;   // columna F
   // Los CUATRO contadores tienen que cerrar contra las provistas
@@ -2215,8 +2363,21 @@ function refrescarEquipo(id) {
   var causas = document.getElementById('eq-causas-' + id);
   if (causas) causas.classList.toggle('visible', e.con > 0);
 
-  var remo = document.getElementById('eq-remo-' + id);
-  if (remo) remo.classList.toggle('visible', e.no > 0);
+  // Rubros: tienen que repartir exactamente las unidades con daños
+  var rub = (e.ra || 0) + (e.rb || 0);
+  var elRub = document.getElementById('eq-rub-suma-' + id);
+  if (elRub) {
+    if (rub === e.con) {
+      elRub.textContent = '✓ ' + rub + ' de ' + e.con + ' clasificadas';
+      elRub.className = 'equipo-suma';
+    } else {
+      elRub.textContent = 'Clasificadas ' + rub + ' de ' + e.con + ' (faltan ' + (e.con - rub) + ')';
+      elRub.className = 'equipo-suma error';
+    }
+  }
+
+  var repo = document.getElementById('eq-repo-' + id);
+  if (repo) repo.classList.toggle('visible', e.no > 0);
 
   var obs = document.getElementById('eq-obs-' + id);
   if (obs) obs.classList.toggle('visible', (e.con + e.no) > 0);
@@ -2229,7 +2390,7 @@ function refrescarEquipo(id) {
   if ((e.con + e.no) === 0)  limpiarObsEquipo(id);
 
   // Deshabilitar el "−" cuando ya está en cero
-  ['sin','con','no','rem','ret'].forEach(function(k) {
+  ['sin','con','no','rep','ret','ra','rb'].forEach(function(k) {
     var inp = document.getElementById('cnt-' + id + '-' + k);
     if (!inp) return;
     var menos = inp.previousElementSibling;
@@ -2309,8 +2470,8 @@ function precargarEquipamiento(espacioId, areas) {
   // todas las provistas operativas y sin daños.
   ids.forEach(function(id) {
     var eq = buscarEquipo(id);
-    EQUIPO[id] = { sin: eq ? (Number(eq.provisto) || 0) : 0,
-                   con: 0, no: 0, rem: 0, ret: 0 };
+    EQUIPO[id] = equipoVacio();
+    EQUIPO[id].sin = eq ? (Number(eq.provisto) || 0) : 0;
     aplicarValores(id);
   });
 
@@ -2328,13 +2489,12 @@ function precargarEquipamiento(espacioId, areas) {
                    (u.noOperativo || 0) + (u.retirado || 0);
         // Solo se precarga si lo anterior cierra contra las provistas
         if (suma !== tot) return;
-        EQUIPO[id] = {
-          sin: u.opSinDanos  || 0,
-          con: u.opConDanos  || 0,
-          no:  u.noOperativo || 0,
-          ret: u.retirado    || 0,
-          rem: 0
-        };
+        // Reposición y rubros NO se precargan: se responden en cada visita
+        EQUIPO[id] = equipoVacio();
+        EQUIPO[id].sin = u.opSinDanos  || 0;
+        EQUIPO[id].con = u.opConDanos  || 0;
+        EQUIPO[id].no  = u.noOperativo || 0;
+        EQUIPO[id].ret = u.retirado    || 0;
         aplicarValores(id);
       });
     })
@@ -2343,7 +2503,7 @@ function precargarEquipamiento(espacioId, areas) {
 
 function aplicarValores(id) {
   var e = EQUIPO[id];
-  ['sin','con','no','rem','ret'].forEach(function(k) {
+  ['sin','con','no','rep','ret','ra','rb'].forEach(function(k) {
     var inp = document.getElementById('cnt-' + id + '-' + k);
     if (inp) inp.value = e[k];
   });
@@ -2397,11 +2557,8 @@ var MAX_FOTOS = 4;
 function agregarFotos(input, evalId) {
   if (!input.files || input.files.length === 0) return;
   var archivos = Array.prototype.slice.call(input.files);
-  var esMultiple = input.hasAttribute('multiple');
 
   if (!FOTOS[evalId]) FOTOS[evalId] = [];
-  // Si el ítem admite una sola foto, la nueva reemplaza a la anterior
-  if (!esMultiple) FOTOS[evalId] = [];
 
   var lugar = MAX_FOTOS - FOTOS[evalId].length;
   if (archivos.length > lugar) {
@@ -2561,10 +2718,18 @@ function enviarRelevamiento() {
         faltantes.push({ evalId: evalId, tipoFalta: 'nota', areaId: comun.areaId });
         return;
       }
+      // Infraestructura: la superficie o longitud afectada es obligatoria
+      var medida = item.pideMedida ? getMedida(evalId) : null;
+      if (item.pideMedida && !medida) {
+        faltantes.push({ evalId: evalId, tipoFalta: 'medida', areaId: comun.areaId });
+        return;
+      }
       evaluaciones.push(Object.assign({}, comun, {
         estado: 'Problema reportado',
         notas:  notasR,
-        fotos:  getFotos(evalId)
+        fotos:  getFotos(evalId),
+        medidaAfectada: medida ? medida.valor  : '',
+        unidadMedida:   medida ? medida.unidad : ''
       }));
       return;
     }
@@ -2616,7 +2781,7 @@ function enviarRelevamiento() {
     (DB.equipamiento || [])
       .filter(function(e) { return String(e.areaId) === String(area.id); })
       .forEach(function(eq) {
-        var e = EQUIPO[eq.id] || { sin: 0, con: 0, no: 0, rem: 0, ret: 0 };
+        var e = EQUIPO[eq.id] || equipoVacio();
         var suma = e.sin + e.con + e.no + (e.ret || 0);
         var prov = Number(eq.provisto) || 0;
 
@@ -2633,9 +2798,16 @@ function enviarRelevamiento() {
           return;
         }
 
+        // ...y repartirlas entre rubro A y rubro B
+        if (e.con > 0 && (e.ra || 0) + (e.rb || 0) !== e.con) {
+          faltantes.push({ evalId: 'eq-' + eq.id, tipoFalta: 'rubro', areaId: area.id });
+          return;
+        }
+
         // Resumen legible para la columna Estado
-        var resumen = e.sin + ' operativas · ' + e.con + ' con daños · ' +
-                      e.no + ' no operativas · ' + (e.ret || 0) + ' retiradas';
+        var resumen = e.sin + ' operativas · ' + e.con + ' con daños' +
+                      (e.con > 0 ? ' (A ' + (e.ra || 0) + ' / B ' + (e.rb || 0) + ')' : '') +
+                      ' · ' + e.no + ' no operativas · ' + (e.ret || 0) + ' retiradas';
         var notas = [causas, getNotasEquipo(eq.id)].filter(function(x) { return x; }).join(' | ');
 
         evaluaciones.push({
@@ -2651,10 +2823,15 @@ function enviarRelevamiento() {
           opSinDanos:  e.sin,
           opConDanos:  e.con,
           noOperativo: e.no,
-          remocion:    e.rem,
-          retirado:    e.ret || 0
+          reposicion:  e.rep || 0,
+          retirado:    e.ret || 0,
+          rubroA:      e.ra  || 0,
+          rubroB:      e.rb  || 0
         });
       });
+
+    // Otro reporte del área: solo viaja si el inspector lo completó
+    procesar('otro-' + area.id, ITEM_OTRO_AREA, 'Área', area);
   });
 
   // ── Si falta completar algo, avisar y llevar al primero
@@ -2666,7 +2843,7 @@ function enviarRelevamiento() {
       } else if (f.tipoFalta === 'suma') {
         var card2 = document.getElementById('eq-card-' + f.evalId.replace('eq-', ''));
         if (card2) card2.classList.add('falta-suma');
-      } else if (f.tipoFalta === 'causa') {
+      } else if (f.tipoFalta === 'causa' || f.tipoFalta === 'rubro') {
         var cau = document.getElementById('eq-causas-' + f.evalId.replace('eq-', ''));
         if (cau) cau.classList.add('falta-nota');
       } else {
@@ -2680,6 +2857,8 @@ function enviarRelevamiento() {
     });
     var sumas = faltantes.filter(function(f) { return f.tipoFalta === 'suma'; }).length;
     var caus  = faltantes.filter(function(f) { return f.tipoFalta === 'causa'; }).length;
+    var rubs  = faltantes.filter(function(f) { return f.tipoFalta === 'rubro'; }).length;
+    var meds  = faltantes.filter(function(f) { return f.tipoFalta === 'medida'; }).length;
     var msg;
     if (sumas === faltantes.length) {
       msg = sumas === 1
@@ -2689,6 +2868,14 @@ function enviarRelevamiento() {
       msg = caus === 1
         ? 'Falta indicar los daños de 1 equipamiento.'
         : 'Falta indicar los daños de ' + caus + ' equipamientos.';
+    } else if (rubs === faltantes.length) {
+      msg = rubs === 1
+        ? 'En 1 equipamiento falta repartir las unidades con daños entre ' + RUBROS.A + ' y ' + RUBROS.B + '.'
+        : 'En ' + rubs + ' equipamientos falta repartir las unidades con daños entre ' + RUBROS.A + ' y ' + RUBROS.B + '.';
+    } else if (meds === faltantes.length) {
+      msg = meds === 1
+        ? 'Falta indicar la superficie o longitud afectada (número y unidad) en 1 reporte de infraestructura.'
+        : 'Falta indicar la superficie o longitud afectada (número y unidad) en ' + meds + ' reportes de infraestructura.';
     } else {
       msg = faltantes.length === 1
         ? 'Falta 1 evaluación por completar.'
@@ -2711,11 +2898,51 @@ function enviarRelevamiento() {
   btn.innerHTML = '<span>📍</span> Ubicando...';
   ocultarMsg();
 
+  var cantFotos = 0;
+  evaluaciones.forEach(function(ev) { cantFotos += (ev.fotos || []).length; });
+  mostrarEnvioEnCurso(cantFotos);
+
   // Se espera hasta 10 segundos una ubicación fresca. Si no llega,
   // se usa la última conocida (la de cuando se eligió el espacio).
   obtenerGPSFresco(10000).then(function() {
     completarEnvio(relevador, sitioId, espacioId, sitio, espacio, evaluaciones, btn);
   });
+}
+
+// ── CARTEL DURANTE EL ENVÍO ──────────────────────────────────
+// ⚠️ POR QUÉ EXISTE. El envío sube todas las fotos a Drive de a una
+// y con muchas fotos puede tardar un minuto. Si en ese rato el
+// inspector bloquea el celular o cambia de app, el navegador corta
+// la espera, la app cree que falló y lo manda a la cola, aunque el
+// servidor lo haya guardado bien. El reintento termina en el
+// "AVISO AUTOMÁTICO" de REPORTES. El cartel tapa la pantalla (así
+// tampoco se toca Enviar dos veces) y se pide al navegador que no
+// apague la pantalla mientras dura el envío.
+var bloqueoPantalla = null;
+
+function mostrarEnvioEnCurso(cantFotos) {
+  document.getElementById('envio-detalle').textContent = cantFotos > 0
+    ? 'Se están subiendo ' + cantFotos + (cantFotos === 1 ? ' foto' : ' fotos') +
+      '. Puede tardar hasta un minuto.'
+    : '';
+  document.getElementById('envio-en-curso').classList.add('visible');
+
+  // No todos los navegadores lo permiten: si falla, queda solo el cartel
+  try {
+    if (navigator.wakeLock) {
+      navigator.wakeLock.request('screen')
+        .then(function(b) { bloqueoPantalla = b; })
+        .catch(function() {});
+    }
+  } catch (e) {}
+}
+
+function ocultarEnvioEnCurso() {
+  document.getElementById('envio-en-curso').classList.remove('visible');
+  if (bloqueoPantalla) {
+    bloqueoPantalla.release().catch(function() {});
+    bloqueoPantalla = null;
+  }
 }
 
 // Segunda mitad del envío: se ejecuta cuando terminó de buscar el GPS
@@ -2744,20 +2971,14 @@ function completarEnvio(relevador, sitioId, espacioId, sitio, espacio, evaluacio
 
   enviarAlServidor(payload)
     .then(function(res) {
+      ocultarEnvioEnCurso();
       btn.disabled = false;
       btn.innerHTML = '<span>📤</span> Enviar relevamiento';
       if (res.ok) {
         if (res.duplicado) {
-          // El relevamiento ya estaba guardado (reintento de un envío
-          // que se había cortado). Si traía fotos, pueden no haberse
-          // subido: se avisa en vez de dar un ✅ que tape el problema.
-          if (res.fotosPendientes > 0) {
-            mostrarMsg('⚠️ Este relevamiento ya estaba guardado (ID: ' + res.id + '), así que ' +
-                       'no se volvió a enviar. Las fotos de este reintento pueden no haberse ' +
-                       'guardado. Ya quedó anotado para que lo revisen.', false);
-          } else {
-            mostrarMsg('✅ Este relevamiento ya estaba guardado. ID: ' + res.id, true);
-          }
+          // Reintento de un envío que ya había llegado completo
+          // (con sus fotos): no hay nada que avisar.
+          mostrarMsg('✅ Este relevamiento ya estaba guardado. ID: ' + res.id, true);
         } else {
           mostrarMsg('✅ Relevamiento enviado correctamente. ID: ' + res.id, true);
         }
@@ -2785,6 +3006,7 @@ function limpiarResaltadosFaltantes() {
 }
 
 function guardarYAvisar(payload, btn) {
+  ocultarEnvioEnCurso();
   guardarPendiente(payload).then(function() {
     btn.disabled = false;
     btn.innerHTML = '<span>📤</span> Enviar relevamiento';
