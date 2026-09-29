@@ -940,7 +940,7 @@
 <!-- ✏️ SUBÍ ESTE NÚMERO CADA VEZ QUE ACTUALICES EL ARCHIVO.
      Sirve para saber desde el celular si estás viendo la versión
      nueva o una guardada en caché por el navegador. -->
-<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios &middot; v0.22</div>
+<div class="pie">DGCCTA &mdash; Programa Recuperación de Espacios Comunitarios &middot; v0.24</div>
 
 <!-- CARTEL DURANTE EL ENVÍO -->
 <div id="envio-en-curso" role="alertdialog" aria-live="assertive">
@@ -1864,7 +1864,10 @@ var ITEM_COOP = {
 function itemInfraestructura(f) {
   var medida = String(f.medida || '').trim();
   var m = medida.toLowerCase().replace(/\s/g, '');
-  var unidad = (m === 'm²' || m === 'm2') ? 'm²' : (m === 'm' ? 'm' : '');
+  var unidad = (m === 'm²' || m === 'm2') ? 'm²'
+             : (m === 'm') ? 'm'
+             : (m === 'ud' || m === 'u' || m === 'unidad' || m === 'unidades') ? 'ud'
+             : '';
   return {
     id:    f.id,
     label: f.clasificacion + (medida ? ' (' + medida + ')' : ''),
@@ -1928,14 +1931,15 @@ function crearReporteProblema(evalId, item) {
     '</div>';
 }
 
-// Superficie o longitud afectada: número + unidad, ambos obligatorios
+// Medida afectada (superficie, longitud o unidades): número + unidad,
+// ambos obligatorios
 function bloqueMedida(evalId, item) {
   var def = item.unidadDefecto || '';
   var opcion = function(u, texto) {
     return '<option value="' + u + '"' + (u === def ? ' selected' : '') + '>' + texto + '</option>';
   };
   return '' +
-    '<label class="mini-label">Superficie o longitud afectada ' +
+    '<label class="mini-label">Medida afectada (m², m o ud) ' +
       '<span class="aclara">(obligatorio)</span></label>' +
     '<div class="medida-fila">' +
       // type="text" y no "number": con teclado en español algunos Android
@@ -1945,7 +1949,7 @@ function bloqueMedida(evalId, item) {
         'oninput="marcarOpcion(\'' + evalId + '\')">' +
       '<select id="uni-' + evalId + '" data-defecto="' + def + '" ' +
         'onchange="marcarOpcion(\'' + evalId + '\')">' +
-        opcion('', 'Unidad') + opcion('m²', 'm²') + opcion('m', 'm') +
+        opcion('', 'Unidad') + opcion('m²', 'm²') + opcion('m', 'm') + opcion('ud', 'ud') +
       '</select>' +
     '</div>';
 }
@@ -2207,7 +2211,7 @@ function crearEquipamiento(eq) {
   // respondía cada pregunta.
   h +=     filaConteo(id, 'sin', 'punto-ok',   'Operativo (sin daños)');
 
-  h +=     filaConteo(id, 'con', 'punto-dano', 'Operativo (con daños)');
+  h +=     filaConteo(id, 'con', 'punto-dano', 'Operativo con daños (se solicita reparación)');
   // ↑ las causas de daño se abren acá, pegadas a "con daños"
   h +=     '<div class="equipo-extra bajo-contador de-danos" id="eq-causas-' + id + '">' +
              // Rubros: las unidades con daños se reparten entre A y B
@@ -2244,19 +2248,27 @@ function crearEquipamiento(eq) {
                'oninput="limpiarAvisoEquipo(\'' + id + '\')"></textarea>' +
            '</div>';
 
-  // La remoción de las no operativas es automática; lo que se
-  // pregunta es si además hay que reponer el elemento.
   h +=     filaConteo(id, 'no',  'punto-no',   'No operativo (se solicita remoción)');
-  // ↑ la reposición se abre acá, pegada a "no operativo"
-  h +=     '<div class="equipo-extra bajo-contador de-noop" id="eq-repo-' + id + '">' +
+  h +=     filaConteo(id, 'ret', 'punto-ret',  'Retirado (no se encuentra)', true);
+  h +=     '<div class="equipo-suma" id="eq-suma-' + id + '"></div>';
+
+  // ── Pendiente de reposición ──
+  // Va APARTE de los cuatro contadores porque no es un estado más de
+  // las unidades: es cuántas de las no operativas o retiradas todavía
+  // esperan ser repuestas. Es un ESTADO, no un pedido: se precarga con
+  // lo que dejó la visita anterior, así una reposición ya informada no
+  // se vuelve a sumar en cada recorrida. Solo aparece si hay no
+  // operativas o retiradas, y no puede superar esa suma.
+  h +=     '<div class="equipo-extra de-noop bajo-contador" id="eq-repo-' + id + '" style="margin-top:9px;">' +
              '<div class="conteo-fila" style="border:none;padding:0;">' +
-               '<span class="conteo-etiqueta">¿De cuántas se solicita reposición del elemento?</span>' +
+               '<span class="conteo-etiqueta">Pendiente de reposición</span>' +
                contadorHTML(id, 'rep') +
              '</div>' +
+             '<p class="ayuda-corta" style="margin:8px 0 0;font-style:italic;">' +
+               '*En caso de requerir un retiro permanente, se debe informar en el ' +
+               'reporte de la app para descontarlo del seguimiento de inspección.' +
+             '</p>' +
            '</div>';
-
-  h +=     filaConteo(id, 'ret', 'punto-ret',  'Retirado (ya no está)', true);
-  h +=     '<div class="equipo-suma" id="eq-suma-' + id + '"></div>';
 
   // Observaciones y fotos: van al final porque aplican a todo el
   // equipamiento, no a un renglón en particular.
@@ -2308,11 +2320,11 @@ function setConteo(id, clave, valor) {
 
   var eq = buscarEquipo(id);
   // El tope de cada estado es la cantidad PROVISTA (columna F),
-  // que no cambia nunca. La reposición está topeada por las no
-  // operativas, y cada rubro por las con daños que el otro rubro
-  // todavía no tomó.
+  // que no cambia nunca. Lo pendiente de reposición está topeado por
+  // las no operativas + retiradas, y cada rubro por las con daños que
+  // el otro rubro todavía no tomó.
   var tope = eq ? (Number(eq.provisto) || 0) : 99;
-  if (clave === 'rep') tope = e.no;
+  if (clave === 'rep') tope = e.no + (e.ret || 0);
   if (clave === 'ra')  tope = e.con - (e.rb || 0);
   if (clave === 'rb')  tope = e.con - (e.ra || 0);
   if (n > tope) n = tope;
@@ -2321,8 +2333,11 @@ function setConteo(id, clave, valor) {
   var inp = document.getElementById('cnt-' + id + '-' + clave);
   if (inp) inp.value = n;
 
-  // Si bajan las no operativas, la reposición se recorta sola
-  if (clave === 'no' && e.rep > n) fijarConteo(id, 'rep', n);
+  // Si bajan las no operativas o las retiradas, lo pendiente de
+  // reposición se recorta solo
+  if ((clave === 'no' || clave === 'ret') && e.rep > e.no + (e.ret || 0)) {
+    fijarConteo(id, 'rep', e.no + (e.ret || 0));
+  }
 
   // Si bajan las con daños, los rubros se recortan solos (primero B)
   if (clave === 'con') {
@@ -2386,7 +2401,7 @@ function refrescarEquipo(id) {
   }
 
   var repo = document.getElementById('eq-repo-' + id);
-  if (repo) repo.classList.toggle('visible', e.no > 0);
+  if (repo) repo.classList.toggle('visible', (e.no + (e.ret || 0)) > 0);
 
   var obs = document.getElementById('eq-obs-' + id);
   if (obs) obs.classList.toggle('visible', (e.con + e.no) > 0);
@@ -2498,12 +2513,15 @@ function precargarEquipamiento(espacioId, areas) {
                    (u.noOperativo || 0) + (u.retirado || 0);
         // Solo se precarga si lo anterior cierra contra las provistas
         if (suma !== tot) return;
-        // Reposición y rubros NO se precargan: se responden en cada visita
+        // Los rubros NO se precargan: se responden en cada visita.
+        // Lo pendiente de reposición SÍ, topeado por no operativas +
+        // retiradas (si la columna de la planilla no existe, llega 0).
         EQUIPO[id] = equipoVacio();
         EQUIPO[id].sin = u.opSinDanos  || 0;
         EQUIPO[id].con = u.opConDanos  || 0;
         EQUIPO[id].no  = u.noOperativo || 0;
         EQUIPO[id].ret = u.retirado    || 0;
+        EQUIPO[id].rep = Math.min(u.pendReposicion || 0, EQUIPO[id].no + EQUIPO[id].ret);
         aplicarValores(id);
       });
     })
@@ -2727,7 +2745,7 @@ function enviarRelevamiento() {
         faltantes.push({ evalId: evalId, tipoFalta: 'nota', areaId: comun.areaId });
         return;
       }
-      // Infraestructura: la superficie o longitud afectada es obligatoria
+      // Infraestructura: la medida afectada (m², m o ud) es obligatoria
       var medida = item.pideMedida ? getMedida(evalId) : null;
       if (item.pideMedida && !medida) {
         faltantes.push({ evalId: evalId, tipoFalta: 'medida', areaId: comun.areaId });
@@ -2883,8 +2901,8 @@ function enviarRelevamiento() {
         : 'En ' + rubs + ' equipamientos falta repartir las unidades con daños entre ' + RUBROS.A + ' y ' + RUBROS.B + '.';
     } else if (meds === faltantes.length) {
       msg = meds === 1
-        ? 'Falta indicar la superficie o longitud afectada (número y unidad) en 1 reporte de infraestructura.'
-        : 'Falta indicar la superficie o longitud afectada (número y unidad) en ' + meds + ' reportes de infraestructura.';
+        ? 'Falta indicar la medida afectada (número y unidad) en 1 reporte de infraestructura.'
+        : 'Falta indicar la medida afectada (número y unidad) en ' + meds + ' reportes de infraestructura.';
     } else {
       msg = faltantes.length === 1
         ? 'Falta 1 evaluación por completar.'
